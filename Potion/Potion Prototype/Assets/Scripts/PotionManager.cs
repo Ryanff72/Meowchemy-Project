@@ -50,7 +50,7 @@ public class PotionManager : MonoBehaviour
         {
             Debug.Log(throwForce);
             throwForce = maxThrowForce * (distanceToMouse/10);
-            numberOfPoints = 25 - Mathf.RoundToInt(17-distanceToMouse*1.7f);
+            numberOfPoints = 25 - Mathf.RoundToInt(24-distanceToMouse*2.4f);
         }
 
         //handles if the line shows for aiming or not
@@ -69,7 +69,7 @@ public class PotionManager : MonoBehaviour
             }
         }
 
-        if (Input.GetButtonDown("Throw") && Input.GetButton("Aim"))
+        if (Input.GetButtonDown("Throw")) //&& Input.GetButton("Aim"))
         {
             Throw();
         }

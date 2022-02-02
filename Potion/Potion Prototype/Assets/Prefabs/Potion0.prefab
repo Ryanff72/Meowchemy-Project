@@ -99,7 +99,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   velocity: {x: 0, y: 0}
-  gravity: 1.2
+  gravity: 2
   HitFX: {fileID: 8967834529266873160, guid: f9acebbdc66967b41a0720ed9d96515e, type: 3}
 --- !u!50 &683338435840701458
 Rigidbody2D:
