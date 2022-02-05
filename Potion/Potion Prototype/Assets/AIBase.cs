@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class AIBase : MonoBehaviour
 {
-    // Start is called before the first frame update
+    // bot
     void Start()
     {
         
