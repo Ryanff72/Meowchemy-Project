@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class AIBase : MonoBehaviour
 {
-    // hi elijah what is up
+    // its satuday, garfelf's second favorit da
+
     void Start()
     {
         
