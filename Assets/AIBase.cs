@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class AIBase : MonoBehaviour
 {
-    // bot
+    // hi elijah what is up
     void Start()
     {
         
