@@ -25,10 +25,12 @@ public class PotionBase : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        GetComponent<CircleCollider2D>().enabled = false;
         Instantiate(HitFX, transform.position, Quaternion.identity);
         gravity = 0;
         velocity = new Vector2(0, 0);
         GetComponent<SpriteRenderer>().enabled = false;
+        
         GetComponent<DeleteAfterTime>().triggered = true;
     }
 }
