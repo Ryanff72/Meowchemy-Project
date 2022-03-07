@@ -9,10 +9,13 @@ public class PotionBase : MonoBehaviour
     public float gravity;
     private Rigidbody2D rb2d;
     public GameObject HitFX;
+    public float soundRadius;
+    public GameObject[] enemies;
 
     // Start is called before the first frame update
     void Start()
     {
+        enemies = GameObject.FindGameObjectsWithTag("Enemy");
         rb2d = GetComponent<Rigidbody2D>();
     }
 
@@ -30,7 +33,13 @@ public class PotionBase : MonoBehaviour
         gravity = 0;
         velocity = new Vector2(0, 0);
         GetComponent<SpriteRenderer>().enabled = false;
-        
+        foreach (GameObject go in enemies)
+        {
+            if (Vector3.Distance(transform.position, go.transform.position) < soundRadius)
+            {
+                //aggrivate
+            }
+        }
         GetComponent<DeleteAfterTime>().triggered = true;
     }
 }
