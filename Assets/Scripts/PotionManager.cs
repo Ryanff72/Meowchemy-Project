@@ -48,7 +48,6 @@ public class PotionManager : MonoBehaviour
         }
         else
         {
-            Debug.Log(throwForce);
             throwForce = maxThrowForce * (distanceToMouse/10);
             numberOfPoints = 25 - Mathf.RoundToInt(24-distanceToMouse*2.4f);
         }
