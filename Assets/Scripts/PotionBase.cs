@@ -33,11 +33,13 @@ public class PotionBase : MonoBehaviour
         gravity = 0;
         velocity = new Vector2(0, 0);
         GetComponent<SpriteRenderer>().enabled = false;
-        foreach (GameObject go in enemies)
+        for (int i = 0; i < enemies.Length; i++)
         {
-            if (Vector3.Distance(transform.position, go.transform.position) < soundRadius)
+            
+            if (Vector3.Distance(transform.position, enemies[i].transform.position) < soundRadius)
             {
-                //aggrivate
+                Debug.Log(i);
+                enemies[i].GetComponent<AIBase>().setAggro();
             }
         }
         GetComponent<DeleteAfterTime>().triggered = true;

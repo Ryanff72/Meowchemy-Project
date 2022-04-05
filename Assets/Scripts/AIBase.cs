@@ -20,7 +20,7 @@ public class AIBase : MonoBehaviour
 
     //[Header("Misc")]
 
-    public enum AIState { idle, patrol };
+    public enum AIState { idle, patrol, aggro };
     public AIState aiState;
     Vector2 velocity;
     public float gravity;
@@ -40,6 +40,9 @@ public class AIBase : MonoBehaviour
                 break;
             case AIState.patrol:
                 Patrol();
+                break;
+            case AIState.aggro:
+                Aggro();
                 break;
         }
     }
@@ -68,6 +71,11 @@ public class AIBase : MonoBehaviour
                 StartCoroutine("PatrolBreak");
             }
         }
+
+    }
+
+    void Aggro()
+    {
 
     }
 
@@ -118,5 +126,10 @@ public class AIBase : MonoBehaviour
             velocity.y = 0;
         }
         rb2d.velocity = new Vector2(velocity.x, velocity.y);
+    }
+
+    public void setAggro()
+    {
+        
     }
 }
