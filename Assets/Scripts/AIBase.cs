@@ -10,6 +10,10 @@ public class AIBase : MonoBehaviour
     [Header("Game Objects")]
     public GameObject leftGc;
     public GameObject rightGc;
+    public GameObject WCLL;
+    public GameObject WCHL;
+    public GameObject WCLR;
+    public GameObject WCHR;
 
     [Header("PatrolSettings")]
     public float leftLimit;
@@ -27,6 +31,7 @@ public class AIBase : MonoBehaviour
     public float speed;
     private Rigidbody2D rb2d;
     bool grounded;
+    bool hasSetAggro = false;
 
     void Start()
     {
@@ -37,11 +42,17 @@ public class AIBase : MonoBehaviour
         switch (aiState)
         {
             case AIState.idle:
+                hasSetAggro = false;
                 break;
             case AIState.patrol:
+                speed = 6f;
+                hasSetAggro = false;
                 Patrol();
                 break;
             case AIState.aggro:
+                speed = 12f;
+                setAggro();
+                hasSetAggro = true;
                 Aggro();
                 break;
         }
@@ -113,6 +124,21 @@ public class AIBase : MonoBehaviour
             grounded = false;
         }
 
+        //check for wall
+        RaycastHit2D WallCheckLowLeft = Physics2D.Linecast(WCLL.transform.position, WCLL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckHighLeft = Physics2D.Linecast(WCHL.transform.position, WCHL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckLowRight = Physics2D.Linecast(WCLR.transform.position, WCLR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckHighRight = Physics2D.Linecast(WCHR.transform.position, WCHR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        if (WallCheckHighLeft.collider != null || WallCheckLowLeft.collider != null)
+        {
+            velocity.x = speed;
+        }
+        else if (WallCheckHighRight.collider != null || WallCheckLowRight.collider != null)
+        {
+            velocity.x = -speed;
+        }
+
+
     }
 
     private void FixedUpdate()
@@ -125,11 +151,24 @@ public class AIBase : MonoBehaviour
         {
             velocity.y = 0;
         }
+        Debug.Log(velocity.x);
         rb2d.velocity = new Vector2(velocity.x, velocity.y);
     }
 
     public void setAggro()
     {
+        if (hasSetAggro == false)
+        {
+            if (GameObject.Find("Player").GetComponent<Transform>().position.x > transform.position.x)
+            {
+                velocity.x = speed;
+            }
+            else
+            {
+                velocity.x = -speed;
+            }
+            hasSetAggro = true;
+        }
         
     }
 }
