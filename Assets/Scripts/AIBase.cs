@@ -32,10 +32,15 @@ public class AIBase : MonoBehaviour
     private Rigidbody2D rb2d;
     bool grounded;
     bool hasSetAggro = false;
+    public Vector2 JumpTimeRange;
+    public Vector2 JumpHeightRange;
+    private float jumpTimer;
+    private bool queueJump = false;
 
     void Start()
     {
         rb2d = GetComponent<Rigidbody2D>();
+        jumpTimer = JumpTimeRange.y;
     }
     public void StateMachine()
     {
@@ -50,7 +55,7 @@ public class AIBase : MonoBehaviour
                 Patrol();
                 break;
             case AIState.aggro:
-                speed = 12f;
+                speed = 20f;
                 setAggro();
                 hasSetAggro = true;
                 Aggro();
@@ -87,7 +92,33 @@ public class AIBase : MonoBehaviour
 
     void Aggro()
     {
+        //check for wall
+        RaycastHit2D WallCheckLowLeft = Physics2D.Linecast(WCLL.transform.position, WCLL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckHighLeft = Physics2D.Linecast(WCHL.transform.position, WCHL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckLowRight = Physics2D.Linecast(WCLR.transform.position, WCLR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckHighRight = Physics2D.Linecast(WCHR.transform.position, WCHR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        if (WallCheckHighLeft.collider != null || WallCheckLowLeft.collider != null)
+        {
+            velocity.x = speed;
+        }
+        else if (WallCheckHighRight.collider != null || WallCheckLowRight.collider != null)
+        {
+            velocity.x = -speed;
+        }
 
+        jumpTimer -= Time.deltaTime;
+        if (jumpTimer <= 0)
+        {
+            queueJump = true;
+        }
+
+        if (grounded == true && queueJump == true)
+        {
+            Debug.Log("hello");
+            queueJump = false;
+            velocity.y = Random.Range(JumpHeightRange.x, JumpHeightRange.y);
+            jumpTimer = Random.Range(JumpTimeRange.x, JumpTimeRange.y);
+        }
     }
 
     private IEnumerator PatrolBreak()
@@ -124,19 +155,7 @@ public class AIBase : MonoBehaviour
             grounded = false;
         }
 
-        //check for wall
-        RaycastHit2D WallCheckLowLeft = Physics2D.Linecast(WCLL.transform.position, WCLL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckHighLeft = Physics2D.Linecast(WCHL.transform.position, WCHL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckLowRight = Physics2D.Linecast(WCLR.transform.position, WCLR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckHighRight = Physics2D.Linecast(WCHR.transform.position, WCHR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        if (WallCheckHighLeft.collider != null || WallCheckLowLeft.collider != null)
-        {
-            velocity.x = speed;
-        }
-        else if (WallCheckHighRight.collider != null || WallCheckLowRight.collider != null)
-        {
-            velocity.x = -speed;
-        }
+      
 
 
     }
@@ -149,9 +168,8 @@ public class AIBase : MonoBehaviour
         }
         else
         {
-            velocity.y = 0;
+            //velocity.y = 0;
         }
-        Debug.Log(velocity.x);
         rb2d.velocity = new Vector2(velocity.x, velocity.y);
     }
 
