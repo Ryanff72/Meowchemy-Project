@@ -776,8 +776,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1562790197}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -14.96, y: -0.45, z: 0}
-  m_LocalScale: {x: 2.428909, y: 9.623005, z: 5.7959}
+  m_LocalPosition: {x: -14.96, y: -3.87, z: 0}
+  m_LocalScale: {x: 2.428909, y: 4.089777, z: 5.7959}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 5
@@ -985,11 +985,11 @@ MonoBehaviour:
   rightLimit: 0
   breakTime: 4
   breakRng: 0.5
-  aiState: 2
-  gravity: -0.4
+  aiState: 1
+  gravity: -0.7
   speed: 6
   JumpTimeRange: {x: 1, y: 3}
-  JumpHeightRange: {x: 5, y: 15}
+  JumpHeightRange: {x: 10, y: 25}
 --- !u!50 &1810282678
 Rigidbody2D:
   serializedVersion: 4
@@ -1146,7 +1146,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4844585179218679770, guid: 791d7453a0a80a241947243b64b71d0a, type: 3}
       propertyPath: gravity
-      value: -65
+      value: -100
       objectReference: {fileID: 0}
     - target: {fileID: 4844585179218679770, guid: 791d7453a0a80a241947243b64b71d0a, type: 3}
       propertyPath: accelSpeed
@@ -1155,6 +1155,18 @@ PrefabInstance:
     - target: {fileID: 4844585179218679770, guid: 791d7453a0a80a241947243b64b71d0a, type: 3}
       propertyPath: decelSpeed
       value: 0.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 4844585179218679770, guid: 791d7453a0a80a241947243b64b71d0a, type: 3}
+      propertyPath: jumpHeight
+      value: 3.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4844585179218679770, guid: 791d7453a0a80a241947243b64b71d0a, type: 3}
+      propertyPath: gravityFall
+      value: -100
+      objectReference: {fileID: 0}
+    - target: {fileID: 4844585179218679770, guid: 791d7453a0a80a241947243b64b71d0a, type: 3}
+      propertyPath: gravityJump
+      value: -60
       objectReference: {fileID: 0}
     - target: {fileID: 4844585179218679771, guid: 791d7453a0a80a241947243b64b71d0a, type: 3}
       propertyPath: m_RootOrder
@@ -1231,7 +1243,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3002066612472172682, guid: e69f96b1a6618d044821d216bd939432, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -23.25
+      value: -27.57
       objectReference: {fileID: 0}
     - target: {fileID: 3002066612472172682, guid: e69f96b1a6618d044821d216bd939432, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1272,6 +1284,22 @@ PrefabInstance:
     - target: {fileID: 5504663816330253304, guid: e69f96b1a6618d044821d216bd939432, type: 3}
       propertyPath: m_Name
       value: PlatformBase
+      objectReference: {fileID: 0}
+    - target: {fileID: 5504663816330253304, guid: e69f96b1a6618d044821d216bd939432, type: 3}
+      propertyPath: m_TagString
+      value: Platform
+      objectReference: {fileID: 0}
+    - target: {fileID: 6221412911895184456, guid: e69f96b1a6618d044821d216bd939432, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 6221412911895184463, guid: e69f96b1a6618d044821d216bd939432, type: 3}
+      propertyPath: speed
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 6221412912058164438, guid: e69f96b1a6618d044821d216bd939432, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 7.46
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e69f96b1a6618d044821d216bd939432, type: 3}

@@ -17,6 +17,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     public float gravity;
     [SerializeField]
+    public float gravityJump;
+    [SerializeField]
+    public float gravityFall;
+    [SerializeField]
     public Vector2 velocity;
 
     [Header("Game Objects")]
@@ -140,6 +144,7 @@ public class PlayerController : MonoBehaviour
                     gotToAirBy = "jumping";
                 }
                 edgeJumpTimer = 0.0f;
+                gravity = gravityJump;
                 grounded = true;
                 earlyJumpTriggered = false;
                 //this bit of code is to ensure that when the player leaves the ground via edge the code does not think that the player jumped.
@@ -154,7 +159,21 @@ public class PlayerController : MonoBehaviour
                     velocity.y = 0;
                     setyvelzero = true;
                 }
-
+                //if (GroundCheckLeft.collider.gameObject.tag != null || GroundCheckRight.collider.gameObject.tag != null)
+                //{
+                //    if (GroundCheckLeft.collider.gameObject.tag == "Platform")
+                //    {
+                //        transform.SetParent(GroundCheckLeft.collider.transform);
+                //    }
+                //    if (GroundCheckRight.collider.gameObject.tag == "Platform")
+                //    {
+                //        transform.SetParent(GroundCheckLeft.collider.transform);
+                //    }
+                //}
+                //else
+                //{
+                //    transform.SetParent(null);
+                //}
             }
             else
             {
@@ -236,9 +255,9 @@ public class PlayerController : MonoBehaviour
         
         
         //shrinks the upward force when releasing space (causes jumps to vary in height)
-        if ((Input.GetButtonUp("Jump") || Input.GetKeyUp(Controls.JumpButtonName)) && rb2d.velocity.y > 0)
+        if (Input.GetButtonUp("Jump") || Input.GetKeyUp(Controls.JumpButtonName)) // && rb2d.velocity.y > 0)
         {
-            velocity.y *= 0.6f;
+            gravity = gravityFall;
         }
 
     }
