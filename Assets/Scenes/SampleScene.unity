@@ -1728,6 +1728,10 @@ PrefabInstance:
       value: -100
       objectReference: {fileID: 0}
     - target: {fileID: 4844585179218679770, guid: 791d7453a0a80a241947243b64b71d0a, type: 3}
+      propertyPath: maxSpeed
+      value: 8.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4844585179218679770, guid: 791d7453a0a80a241947243b64b71d0a, type: 3}
       propertyPath: accelSpeed
       value: 0.02
       objectReference: {fileID: 0}
