@@ -30,6 +30,7 @@ public class PlayerController : MonoBehaviour
     public GameObject wctr;
     public GameObject wcbl;
     public GameObject wctl;
+    public GameObject spriteParent;
     
 
     [Header("Components")]
@@ -54,12 +55,14 @@ public class PlayerController : MonoBehaviour
     public string gotToAirBy = "jumping";
     private string fatFallDir = "none";
 
-
+    [Header("Misc")]
+    private Animator anim;
     public enum PlayerState {neutral};
     public PlayerState ps;
 
     void Start()
     {
+        anim = spriteParent.GetComponent<Animator>();
         rb2d = GetComponent<Rigidbody2D>();
         ps = PlayerState.neutral;
         //control helper
@@ -88,17 +91,32 @@ public class PlayerController : MonoBehaviour
          {
              float xVelocity = 0;
              velocity = new Vector2(Mathf.SmoothDamp(velocity.x, 0, ref xVelocity, decelSpeed), velocity.y);
+            if (grounded)
+            {
+                anim.SetBool("Run", false);
+            }
+            
          }
 
         if (moveright)
         {
             float xVelocity = 0;
             velocity.x = Mathf.SmoothDamp(velocity.x, maxSpeed, ref xVelocity, accelSpeed);
+            spriteParent.transform.localScale = new Vector3(1, 1, 1);
+            if (grounded)
+            {
+                anim.SetBool("Run", true);
+            }
         }
         if (moveleft)
         {
             float xVelocity = 0;
             velocity.x = Mathf.SmoothDamp(velocity.x, -maxSpeed, ref xVelocity, accelSpeed);
+            spriteParent.transform.localScale = new Vector3(-1, 1, 1);
+            if (grounded)
+            {
+                anim.SetBool("Run", true);
+            }
         }
         
     }
@@ -146,6 +164,7 @@ public class PlayerController : MonoBehaviour
                 edgeJumpTimer = 0.0f;
                 gravity = gravityJump;
                 grounded = true;
+                anim.SetBool("Jump", false);
                 earlyJumpTriggered = false;
                 //this bit of code is to ensure that when the player leaves the ground via edge the code does not think that the player jumped.
                 if (gotToAirBy == "jumping")
@@ -181,7 +200,8 @@ public class PlayerController : MonoBehaviour
                 {
                     setyvelzero = false;
                 }
-                //gravity
+            //gravity
+                anim.SetBool("Jump", true); 
                 velocity.y += gravity * Time.deltaTime;
                 edgeJumpTimer += Time.deltaTime;
                 grounded = false;
@@ -255,7 +275,7 @@ public class PlayerController : MonoBehaviour
         
         
         //shrinks the upward force when releasing space (causes jumps to vary in height)
-        if (Input.GetButtonUp("Jump") || Input.GetKeyUp(Controls.JumpButtonName)) // && rb2d.velocity.y > 0)
+        if (Input.GetButtonUp("Jump") || Input.GetKeyUp(Controls.JumpButtonName) || rb2d.velocity.y <= 0) // && rb2d.velocity.y > 0)
         {
             gravity = gravityFall;
         }
@@ -267,11 +287,11 @@ public class PlayerController : MonoBehaviour
         gotToAirBy = "jumping";
         if (Input.GetButtonDown("Jump") || Input.GetKeyDown(Controls.JumpButtonName))
         {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
+            velocity.y += Mathf.Sqrt(jumpHeight * -2 * gravity);
         }
         else
         {
-            velocity.y = Mathf.Sqrt(jumpHeight * gravity * -2f);
+            velocity.y += Mathf.Sqrt(jumpHeight * gravity * -2f);
         }
     }
 
