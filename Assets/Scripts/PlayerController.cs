@@ -287,11 +287,11 @@ public class PlayerController : MonoBehaviour
         gotToAirBy = "jumping";
         if (Input.GetButtonDown("Jump") || Input.GetKeyDown(Controls.JumpButtonName))
         {
-            velocity.y += Mathf.Sqrt(jumpHeight * -2 * gravity);
+            velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
         }
         else
         {
-            velocity.y += Mathf.Sqrt(jumpHeight * gravity * -2f);
+            velocity.y = Mathf.Sqrt(jumpHeight * gravity * -2f);
         }
     }
 
