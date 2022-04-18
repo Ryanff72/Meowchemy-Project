@@ -57,8 +57,9 @@ public class PlayerController : MonoBehaviour
 
     [Header("Misc")]
     private Animator anim;
-    public enum PlayerState {neutral};
+    public enum PlayerState {neutral, frozen};
     public PlayerState ps;
+    public Transform respawnPos;
 
     void Start()
     {
@@ -80,6 +81,9 @@ public class PlayerController : MonoBehaviour
             case PlayerState.neutral:
                 JumpAble();
                 Movement();
+                break;
+            case PlayerState.frozen:
+                Freeze();
                 break;
         }
     }
@@ -293,6 +297,20 @@ public class PlayerController : MonoBehaviour
         {
             velocity.y = Mathf.Sqrt(jumpHeight * gravity * -2f);
         }
+    }
+
+    public void Freeze()
+    {
+        velocity = new Vector2(0, 0);
+        rb2d.velocity = new Vector2(0, 0);
+    }
+
+    public IEnumerator Respawn()
+    {
+        ps = PlayerState.frozen;
+        yield return new WaitForSeconds(0.5f);
+        transform.position = respawnPos.position;
+        ps = PlayerState.neutral;
     }
 
    

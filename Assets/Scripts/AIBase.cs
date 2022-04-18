@@ -34,13 +34,20 @@ public class AIBase : MonoBehaviour
     bool hasSetAggro = false;
     public Vector2 JumpTimeRange;
     public Vector2 JumpHeightRange;
+    public Vector2 ShotFireTimeRange;
+    public Transform shotPos;
+    public GameObject Projectile;
     private float jumpTimer;
+    private float shotTimer;
+    public int shotCount;
+    public float ProjectileSpeed;
     private bool queueJump = false;
 
     void Start()
     {
         rb2d = GetComponent<Rigidbody2D>();
         jumpTimer = JumpTimeRange.y;
+        shotTimer = ShotFireTimeRange.y;
     }
     public void StateMachine()
     {
@@ -55,7 +62,7 @@ public class AIBase : MonoBehaviour
                 Patrol();
                 break;
             case AIState.aggro:
-                speed = 20f;
+                speed = 28f;
                 setAggro();
                 hasSetAggro = true;
                 Aggro();
@@ -105,7 +112,26 @@ public class AIBase : MonoBehaviour
         {
             velocity.x = -speed;
         }
+        shotTimer -= Time.deltaTime;
+        if (shotTimer <= 0)
+        {
+            shotTimer = Random.Range(ShotFireTimeRange.x, ShotFireTimeRange.y);
+            for (int i = 0; i < shotCount; i++)
+            {
+                GameObject NewProj = Instantiate(Projectile, transform.position, Quaternion.identity);
+                if (velocity.x > 0)
+                {
+                    NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(ProjectileSpeed, Random.Range(-8,8));
+                }
+                else
+                {
+                    NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(-ProjectileSpeed, Random.Range(-8, 8));
+                }
+            }
+            
 
+            
+        }       
         jumpTimer -= Time.deltaTime;
         if (jumpTimer <= 0)
         {
