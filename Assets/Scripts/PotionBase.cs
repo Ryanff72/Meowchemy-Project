@@ -24,6 +24,23 @@ public class PotionBase : MonoBehaviour
     {
         rb2d.velocity = velocity;
         velocity.y -= gravity;
+        if (velocity.x > 0)
+        {
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * -1, transform.localScale.y, transform.localScale.z);
+        }
+        else
+        {
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * -1, Mathf.Abs(transform.localScale.y) * -1, transform.localScale.z);
+        }
+    }
+
+    private void Update()
+    {
+        float angle;
+        Vector2 v = GetComponent<Rigidbody2D>().velocity;
+        angle = Mathf.Atan2(v.y, v.x) * Mathf.Rad2Deg;
+
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.AngleAxis(angle, Vector3.forward), Time.deltaTime * 25);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -32,7 +49,7 @@ public class PotionBase : MonoBehaviour
         Instantiate(HitFX, transform.position, Quaternion.identity);
         gravity = 0;
         velocity = new Vector2(0, 0);
-        GetComponent<SpriteRenderer>().enabled = false;
+        transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
         for (int i = 0; i < enemies.Length; i++)
         {
             
