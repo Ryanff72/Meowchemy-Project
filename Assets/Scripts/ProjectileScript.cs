@@ -16,11 +16,11 @@ public class ProjectileScript : MonoBehaviour
         
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.collider.gameObject.layer == 3)
+        if (collision.gameObject.layer == 3)
         {
-            collision.collider.gameObject.GetComponent<PlayerController>().StartCoroutine("Respawn");
+            collision.gameObject.GetComponent<PlayerController>().StartCoroutine("Respawn");
         }
         Destroy(gameObject);
     }

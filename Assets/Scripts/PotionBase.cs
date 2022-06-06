@@ -43,7 +43,7 @@ public class PotionBase : MonoBehaviour
         transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.AngleAxis(angle, Vector3.forward), Time.deltaTime * 25);
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
         GetComponent<CircleCollider2D>().enabled = false;
         Instantiate(HitFX, transform.position, Quaternion.identity);
@@ -55,7 +55,7 @@ public class PotionBase : MonoBehaviour
             
             if (Vector3.Distance(transform.position, enemies[i].transform.position) < soundRadius)
             {
-                Debug.Log(i);
+                //Debug.Log(i);
                 enemies[i].GetComponent<AIBase>().setAggro();
             }
         }

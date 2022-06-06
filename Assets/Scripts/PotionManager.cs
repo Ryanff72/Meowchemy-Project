@@ -6,6 +6,7 @@ public class PotionManager : MonoBehaviour
 {
 
     public GameObject potion;
+    public GameObject rightHand;
     public float maxThrowForce;
     private float throwForce;
     public float gravity;
@@ -40,6 +41,8 @@ public class PotionManager : MonoBehaviour
         direction = mousePosition - new Vector2 (transform.parent.position.x, transform.parent.position.y);
         distanceToMouse = Vector2.Distance(mousePosition, player.transform.position);
         transform.right = direction;
+        //decides where the players hand is
+        transform.position = rightHand.transform.position;
         //throw force decider
         if (distanceToMouse > 10 || distanceToMouse == 0)
         {
