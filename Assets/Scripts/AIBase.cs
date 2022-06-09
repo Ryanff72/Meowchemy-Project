@@ -14,6 +14,8 @@ public class AIBase : MonoBehaviour
     public GameObject WCHL;
     public GameObject WCLR;
     public GameObject WCHR;
+    public GameObject CCR;
+    public GameObject CCL;
 
     [Header("PatrolSettings")]
     public float leftLimit;
@@ -26,14 +28,14 @@ public class AIBase : MonoBehaviour
 
     //[Header("Misc")]
 
-    public enum AIState { idle, patrol, aggro };
+    public enum AIState { idle, suspicious, boundedPatrol, aggro, dead };
     public AIState aiState;
-    Vector2 velocity;
+    public Vector2 velocity;
     public float gravity;
     public float speed;
     public float aggroSpeed;
     private Rigidbody2D rb2d;
-    bool grounded;
+    [SerializeField] bool grounded;
     bool hasSetAggro = false;
     public Vector2 JumpTimeRange;
     public Vector2 JumpHeightRange;
@@ -50,6 +52,11 @@ public class AIBase : MonoBehaviour
     public Animator anim;
     [SerializeField] FieldOfViewScript fovScript;
     public GameObject angerBar;
+    //helps gravity work correctly
+    bool setyVel0;
+    public bool killedByOtherAI;
+    string isPaused = "unassigned"; // for suspicion state
+    bool velHasDiminished = false;//to help the bouncing after death
 
     void Start()
     {
@@ -64,16 +71,24 @@ public class AIBase : MonoBehaviour
             case AIState.idle:
                 hasSetAggro = false;
                 break;
-            case AIState.patrol:
+            case AIState.boundedPatrol:
                 speed = 6f;
                 hasSetAggro = false;
                 Patrol();
+                break;
+            case AIState.suspicious:
+                speed = 4f;
+                hasSetAggro = false;
+                StartCoroutine("Suspicious");
                 break;
             case AIState.aggro:
                 speed = aggroSpeed;
                 setAggro();
                 hasSetAggro = true;
                 Aggro();
+                break;
+            case AIState.dead:
+                DeathProcedure();
                 break;
         }
     }
@@ -121,24 +136,29 @@ public class AIBase : MonoBehaviour
             velocity.x = -speed;
         }
         shotTimer -= Time.deltaTime;
-        if (shotTimer <= 0)
+        if (shotTimer <= 0 && -1.5f < (transform.position.y-GameObject.Find("Player").transform.position.y) && (transform.position.y - GameObject.Find("Player").transform.position.y) < 1.5f )
         {
             shotTimer = Random.Range(ShotFireTimeRange.x, ShotFireTimeRange.y);
             for (int i = 0; i < shotCount; i++)
             {
-                GameObject NewProj = Instantiate(Projectile, transform.position, Quaternion.identity);
-                if (velocity.x > 0)
+                GameObject NewProj;
+                if (moveDir == "right")
                 {
-                    NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(ProjectileSpeed, Random.Range(-0.5f,2.5f));
+                    NewProj = Instantiate(Projectile, new Vector3(transform.position.x + 1, transform.position.y, transform.position.z), Quaternion.identity);
                 }
                 else
                 {
-                    NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(-ProjectileSpeed, Random.Range(-0.5f, 2.5f));
+                    NewProj = Instantiate(Projectile, new Vector3(transform.position.x - 1, transform.position.y, transform.position.z), Quaternion.identity);
                 }
-            }
-            
-
-            
+                if (velocity.x > 0)
+                {
+                    NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(ProjectileSpeed, Random.Range(-0.5f,2f));
+                }
+                else
+                {
+                    NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(-ProjectileSpeed, Random.Range(-0.5f, 2f));
+                }
+            } 
         }       
         jumpTimer -= Time.deltaTime;
         if (jumpTimer <= 0)
@@ -152,6 +172,11 @@ public class AIBase : MonoBehaviour
             velocity.y = Random.Range(JumpHeightRange.x, JumpHeightRange.y);
             jumpTimer = Random.Range(JumpTimeRange.x, JumpTimeRange.y);
         }
+
+        if (grounded == false)
+        {
+            setyVel0 = true;
+        }
     }
 
     private IEnumerator PatrolBreak()
@@ -161,7 +186,7 @@ public class AIBase : MonoBehaviour
         yield return new WaitForSeconds (Random.Range(breakTime-breakRng, breakTime+breakRng));
         if (aiState == AIState.idle)
         {
-            aiState = AIState.patrol;
+            aiState = AIState.boundedPatrol;
             if (moveDir == "right")
             {
                 moveDir = "left";
@@ -172,31 +197,106 @@ public class AIBase : MonoBehaviour
             }
         }
     }
+
+    private IEnumerator Suspicious()
+    {
+        
+        RaycastHit2D GroundCheckLeft = Physics2D.Linecast(leftGc.transform.position, leftGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D CeilingCheckRight = Physics2D.Linecast(CCR.transform.position, CCR.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckLowLeft = Physics2D.Linecast(WCLL.transform.position, WCLL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckHighLeft = Physics2D.Linecast(WCHL.transform.position, WCHL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckLowRight = Physics2D.Linecast(WCLR.transform.position, WCLR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckHighRight = Physics2D.Linecast(WCHR.transform.position, WCHR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        if (GroundCheckLeft.collider == null && GroundCheckRight.collider != null || (WallCheckHighLeft.collider != null || WallCheckLowLeft.collider != null))
+        {
+            //velocity.x = Mathf.Abs(velocity.x);
+            moveDir = "right";
+        }
+        else if (GroundCheckLeft.collider != null && GroundCheckRight.collider == null || (WallCheckHighRight.collider != null || WallCheckLowRight.collider != null))
+        {
+            //velocity.x = -Mathf.Abs(velocity.x);
+            moveDir = "left";
+        }
+        if (moveDir == "right")
+        {
+            if (isPaused == "true")
+            {
+                velocity.x = 0f;
+            }
+            else
+            {
+                velocity.x = speed;
+            }
+            
+        }
+        else
+        {
+            if (isPaused == "true")
+            {
+                velocity.x = 0f;
+            }
+            else
+            {
+                velocity.x = -speed;
+            }
+        }
+        if (isPaused == "false")
+        {
+            yield return new WaitForSeconds(4f);
+            if (Random.Range(0, 100) > 50f && isPaused == "false")
+            {
+                isPaused = "true";
+                yield return new WaitForSeconds(Random.Range(2, 5));
+                isPaused = "false";
+            }
+        }
+        else if (isPaused != "true")
+        {
+            isPaused = "true";
+            yield return new WaitForSeconds(Random.Range(2, 5));
+            isPaused = "false";
+        }
+        
+        
+        
+        
+    }
+
     // Update is called once per frame
     void Update()
     {
         StateMachine();
+        
+            
         fovScript.SetOrigin(transform.position);
         //check for ground
-        RaycastHit2D GroundCheckLeft = Physics2D.Linecast(leftGc.transform.position, leftGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D GroundCheckLeft = Physics2D.Linecast(leftGc.transform.position, leftGc.transform.position - new Vector3(0, -0.1f,0),1<<LayerMask.NameToLayer("Ground"));
+        RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position - new Vector3(0, -0.1f,0),1<<LayerMask.NameToLayer("Ground"));
         if (GroundCheckLeft.collider != null || GroundCheckRight.collider != null)
         {
-
             grounded = true;
-
         }
         else
         {
             grounded = false;
         }
+        
 
-        if (angerBar.transform.localScale.x <= 1)
+        if (aiState != AIState.dead)
         {
-            angerBar.transform.localScale = new Vector3(currentSuspicion / 100, 1,1 );
-            angerBar.transform.localPosition = new Vector2(-0.5f + (currentSuspicion / 200), 0);
+            if (angerBar.transform.localScale.x <= 1)
+            {
+                angerBar.transform.localScale = new Vector3(currentSuspicion / 100, 1, 1);
+                angerBar.transform.localPosition = new Vector2(-0.5f + (currentSuspicion / 200), 0);
+                if (angerBar.transform.localScale.x >= 1)
+                {
+                    angerBar.transform.localScale = new Vector3(1, 1, 0);
+                    angerBar.transform.localPosition = new Vector3(0,0, 0);
+                }
+            }
         }
-
+        
 
     }
 
@@ -210,7 +310,6 @@ public class AIBase : MonoBehaviour
         if (currentSuspicion > suspicionTriggerLevel)
         {
             setAggro();
-            Debug.Log("angered");
         }
         if (velocity.x > 0)
         {
@@ -226,12 +325,17 @@ public class AIBase : MonoBehaviour
         }
         else
         {
-            //velocity.y = 0;
+            if (setyVel0 == true)
+            {
+                velocity.y = 0;
+                setyVel0 = false;
+            }
+            
         }
         rb2d.velocity = new Vector2(velocity.x, velocity.y);
 
         //makes enemy look direction they are moving
-        if(moveDir == "right")
+        if (moveDir == "right")
         {
             fovScript.SetAimDirection(moveDir);
         }
@@ -239,28 +343,40 @@ public class AIBase : MonoBehaviour
         {
             fovScript.SetAimDirection(moveDir);
         }
+        //makes them hit their head on the ceiling
+        RaycastHit2D CeilingCheckRight = Physics2D.Linecast(CCR.transform.position, CCR.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D CeilingCheckLeft = Physics2D.Linecast(CCL.transform.position, CCL.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        if (CeilingCheckLeft.collider != null || CeilingCheckRight.collider != null)
+        {
+            velocity = new Vector2(velocity.x, Mathf.Abs(velocity.y) * -0.4f);
+        }
     }
 
     public void setAggro()
     {
-        if (transform.parent.GetComponent<DistrictAIManagerScript>().HasCalled == false)
-        {
-            StartCoroutine("CallFriends");
-        }
-        else if (hasSetAggro == false)
+        if (aiState != AIState.dead)
         {
             
-            aiState = AIState.aggro;
-            if (GameObject.Find("Player").GetComponent<Transform>().position.x > transform.position.x)
+            if (transform.parent.GetComponent<DistrictAIManagerScript>().HasCalled == false)
             {
-                velocity.x = aggroSpeed;
+                StartCoroutine("CallFriends");
             }
-            else
+            else if (hasSetAggro == false)
             {
-                velocity.x = -aggroSpeed;
+
+                aiState = AIState.aggro;
+                if (GameObject.Find("Player").GetComponent<Transform>().position.x > transform.position.x)
+                {
+                    velocity.x = aggroSpeed;
+                }
+                else
+                {
+                    velocity.x = -aggroSpeed;
+                }
+                hasSetAggro = true;
             }
-            hasSetAggro = true;
         }
+        
         
     }
 
@@ -268,6 +384,57 @@ public class AIBase : MonoBehaviour
     {
         anim.Play("Calling");
         yield return new WaitForSeconds(3.35f);
-        transform.parent.GetComponent<DistrictAIManagerScript>().CallAll();
+        transform.GetChild(2).gameObject.SetActive(false);
+        transform.GetChild(3).gameObject.SetActive(false);
+        if (aiState != AIState.dead)
+        {
+            transform.parent.GetComponent<DistrictAIManagerScript>().CallAll();
+        }
+        
     }
+
+    private void DeathProcedure()
+    {
+        
+        //check for wall
+        RaycastHit2D WallCheckLowLeft = Physics2D.Linecast(WCLL.transform.position, WCLL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckHighLeft = Physics2D.Linecast(WCHL.transform.position, WCHL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckLowRight = Physics2D.Linecast(WCLR.transform.position, WCLR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckHighRight = Physics2D.Linecast(WCHR.transform.position, WCHR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D CeilingCheckRight = Physics2D.Linecast(CCR.transform.position, CCR.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D CeilingCheckLeft = Physics2D.Linecast(CCL.transform.position, CCL.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        if (grounded == true)
+        { 
+            if(velocity.y > -2f && velHasDiminished == true)
+            {
+                velocity.y = 0f;
+            }
+            velocity.x = Mathf.Lerp(velocity.x, 0, Time.deltaTime*2f);
+            velocity.y = Mathf.Abs(velocity.y);
+            velHasDiminished = false;
+        }
+        else if (velHasDiminished == false)
+        {
+            velHasDiminished = true;
+            velocity.x *= 0.5f;
+            velocity.y *= 0.5f;
+        }
+        if (WallCheckHighLeft.collider != null || WallCheckLowLeft.collider != null)
+        {
+            velocity.x = Mathf.Abs(velocity.x);
+        }
+        else if (WallCheckHighRight.collider != null || WallCheckLowRight.collider != null)
+        {
+            velocity.x = -Mathf.Abs(velocity.x);
+        }
+        else if (CeilingCheckLeft.collider != null || CeilingCheckRight.collider != null)
+        {
+            velocity.y = -Mathf.Abs(velocity.y);
+        }
+        velocity.x = Mathf.Lerp(velocity.x, 0, Time.deltaTime*0.2f);
+        fovScript.gameObject.GetComponent<MeshRenderer>().enabled = false;
+        angerBar.transform.parent.gameObject.SetActive(false);
+        gameObject.layer = 10;
+    }
+
 }

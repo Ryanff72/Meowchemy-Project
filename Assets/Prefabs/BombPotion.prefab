@@ -95,6 +95,7 @@ GameObject:
   - component: {fileID: 683338435840701458}
   - component: {fileID: 683338435840701459}
   - component: {fileID: 990761928933192955}
+  - component: {fileID: 3935878532020312770}
   m_Layer: 8
   m_Name: BombPotion
   m_TagString: Untagged
@@ -133,8 +134,13 @@ MonoBehaviour:
   velocity: {x: 0, y: 0}
   gravity: 2
   HitFX: {fileID: 8967834529266873160, guid: e05e4e68f12e21d459d2561ba7605069, type: 3}
-  soundRadius: 5
+  soundRadius: 10
+  splashRadius: 5
+  distanceToEnemies: []
+  distanceToPlayer: 0
   enemies: []
+  enemiesWithinSplash: []
+  potionName: BombPotion
 --- !u!50 &683338435840701458
 Rigidbody2D:
   serializedVersion: 4
@@ -171,7 +177,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.49999997
+  m_Radius: 0.23
 --- !u!114 &990761928933192955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -186,6 +192,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lifetime: 5
   triggered: 0
+--- !u!114 &3935878532020312770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 683338435840701456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c1b6d8c3df841e429bfa182063acc14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4044679873923189566
 GameObject:
   m_ObjectHideFlags: 0
@@ -470,7 +488,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1
+      scalar: 5
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -1051,7 +1069,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 80
+      scalar: 25
       minScalar: 10
       maxCurve:
         serializedVersion: 2
@@ -1328,10 +1346,10 @@ ParticleSystem:
         m_RotationOrder: 4
     separateAxes: 0
   RotationModule:
-    enabled: 0
+    enabled: 1
     x:
       serializedVersion: 2
-      minMaxState: 0
+      minMaxState: 3
       scalar: 0
       minScalar: 0
       maxCurve:
@@ -1384,7 +1402,7 @@ ParticleSystem:
         m_RotationOrder: 4
     y:
       serializedVersion: 2
-      minMaxState: 0
+      minMaxState: 3
       scalar: 0
       minScalar: 0
       maxCurve:
@@ -1437,9 +1455,9 @@ ParticleSystem:
         m_RotationOrder: 4
     curve:
       serializedVersion: 2
-      minMaxState: 0
-      scalar: 0.7853982
-      minScalar: 0.7853982
+      minMaxState: 3
+      scalar: 9.773844
+      minScalar: -9.773844
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -1736,7 +1754,7 @@ ParticleSystem:
     y:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.1
+      scalar: 2.45
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -4953,7 +4971,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 29059f967093daf4f9cdca1b22a88766, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

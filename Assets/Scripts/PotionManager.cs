@@ -17,7 +17,8 @@ public class PotionManager : MonoBehaviour
     public GameObject player;
 [Header("Points")]
     public GameObject point;
-    
+    int lastPoint=50;
+
     GameObject[] points;
     public int numberOfPoints;
     public float spaceBetweenPoints;
@@ -47,12 +48,12 @@ public class PotionManager : MonoBehaviour
         if (distanceToMouse > 10 || distanceToMouse == 0)
         {
             throwForce = maxThrowForce;
-            numberOfPoints = 25;
+            numberOfPoints = 50;
         }
         else
         {
             throwForce = maxThrowForce * (distanceToMouse/10);
-            numberOfPoints = 25 - Mathf.RoundToInt(24-distanceToMouse*2.4f);
+            //numberOfPoints = 25 - Mathf.RoundToInt(24-distanceToMouse*2.4f);
         }
 
         //handles if the line shows for aiming or not
@@ -60,7 +61,30 @@ public class PotionManager : MonoBehaviour
         {
             for (int i = 0; i < numberOfPoints; i++)
             {
-                points[i].GetComponent<SpriteRenderer>().enabled = true;
+                
+                RaycastHit2D GroundCheckForPoints = Physics2D.Linecast(points[i].transform.position, points[i].transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+                if (GroundCheckForPoints.collider != null)
+                {
+                    points[i].GetComponent<SpriteRenderer>().enabled = false;
+                    for (int o = i; o < (numberOfPoints); o++)
+                    {
+                        points[o].GetComponent<SpriteRenderer>().enabled = false;
+                    }
+                    lastPoint = i;
+                }
+                else
+                {
+                    if (i < lastPoint)
+                    {
+                        points[i].GetComponent<SpriteRenderer>().enabled = true;
+                    }
+                    
+                }
+                if (i == numberOfPoints)
+                {
+                    lastPoint = numberOfPoints;
+                }
+                
             }
         }
         if(Input.GetButtonUp("Aim"))
@@ -82,18 +106,17 @@ public class PotionManager : MonoBehaviour
             points[i].transform.position = PointPosition(i * spaceBetweenPoints);
         }
 
-        for (int i = 0; i < 25; i++)
+        for (int i = 0; i < 50; i++)
         {
             if (i >= numberOfPoints)
             {
-                points[i].GetComponent<SpriteRenderer>().enabled = false;
+                //points[i].GetComponent<SpriteRenderer>().enabled = false;
             }
         }
     }
 
     void Throw()
     {
-        
         ThrownPotion = Instantiate(potion, transform.position, Quaternion.identity);
         ThrownPotion.GetComponent<PotionBase>().velocity = transform.right * throwForce;
     }

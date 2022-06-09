@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 314926846}
+  - component: {fileID: 4591617258989770483}
   m_Layer: 0
   m_Name: LowerBody
   m_TagString: Untagged
@@ -31,6 +32,57 @@ Transform:
   - {fileID: 1988048081}
   m_Father: {fileID: 1942177010}
   m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!50 &4591617258989770483
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 314926845}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
+--- !u!1 &448835194
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 448835195}
+  m_Layer: 0
+  m_Name: CCL
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &448835195
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 448835194}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.49, y: 1.02, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4844585181108296258}
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &597918090
 GameObject:
@@ -196,6 +248,36 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &1318336425
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1318336426}
+  m_Layer: 0
+  m_Name: CCR
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1318336426
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1318336425}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.49, y: 1.02, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4844585181108296258}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1539999301
 GameObject:
   m_ObjectHideFlags: 0
@@ -452,6 +534,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1741469956}
   - component: {fileID: 1741469958}
+  - component: {fileID: 299464320726896262}
   m_Layer: 0
   m_Name: UpperBody
   m_TagString: Untagged
@@ -528,6 +611,27 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!50 &299464320726896262
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1741469955}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1 &1942177009
 GameObject:
   m_ObjectHideFlags: 0
@@ -771,6 +875,8 @@ MonoBehaviour:
   wctr: {fileID: 4844585180596307140}
   wcbl: {fileID: 4844585180847554142}
   wctl: {fileID: 4844585180323617287}
+  ccr: {fileID: 1318336425}
+  ccl: {fileID: 448835194}
   spriteParent: {fileID: 1942177009}
   rb2d: {fileID: 0}
   grounded: 0
@@ -917,12 +1023,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   potion: {fileID: 683338435840701456, guid: 2e48df23518c9b244a1a3e43a9a3c6f7, type: 3}
+  rightHand: {fileID: 1738907033}
   maxThrowForce: 50
   gravity: 97
   player: {fileID: 4844585179218679769}
   point: {fileID: 6902834166819967525, guid: aa0048689b238bd48911d2dae2a025de, type: 3}
-  numberOfPoints: 25
-  spaceBetweenPoints: 0.04
+  numberOfPoints: 50
+  spaceBetweenPoints: 0.02
 --- !u!1 &4844585180323617287
 GameObject:
   m_ObjectHideFlags: 0
@@ -1076,6 +1183,8 @@ Transform:
   - {fileID: 4844585180323617286}
   - {fileID: 4844585180571919659}
   - {fileID: 4844585180596307143}
+  - {fileID: 448835195}
+  - {fileID: 1318336426}
   m_Father: {fileID: 4844585179218679771}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

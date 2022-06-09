@@ -22,6 +22,20 @@ public class ProjectileScript : MonoBehaviour
         {
             collision.gameObject.GetComponent<PlayerController>().StartCoroutine("Respawn");
         }
+        else if (collision.gameObject.layer == 7 && collision.gameObject.GetComponent<AIBase>().killedByOtherAI == false)
+        {
+            collision.gameObject.GetComponent<AIBase>().killedByOtherAI = true;
+            collision.gameObject.GetComponent<AIBase>().aiState = AIBase.AIState.dead;
+            if (transform.position.x> collision.transform.position.x)
+            {
+                collision.gameObject.GetComponent<AIBase>().velocity.x = -25f;
+            }
+            else
+            {
+                collision.gameObject.GetComponent<AIBase>().velocity.x = 25f;
+            }
+            
+        }
         Destroy(gameObject);
     }
 }

@@ -10,12 +10,21 @@ public class PotionBase : MonoBehaviour
     private Rigidbody2D rb2d;
     public GameObject HitFX;
     public float soundRadius;
+    public float splashRadius;
+    public List<float> distanceToEnemies = new List<float>();
+    public float distanceToPlayer;
     public GameObject[] enemies;
+    private GameObject player;
+    private bool wasPlayerHit = false;
+    public List<GameObject> enemiesWithinSplash = new List<GameObject>();
+    [SerializeField] private string potionName;
+    //private class 
 
     // Start is called before the first frame update
     void Start()
     {
         enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        player = GameObject.Find("Player");
         rb2d = GetComponent<Rigidbody2D>();
     }
 
@@ -46,6 +55,7 @@ public class PotionBase : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         GetComponent<CircleCollider2D>().enabled = false;
+        
         Instantiate(HitFX, transform.position, Quaternion.identity);
         gravity = 0;
         velocity = new Vector2(0, 0);
@@ -56,9 +66,33 @@ public class PotionBase : MonoBehaviour
             if (Vector3.Distance(transform.position, enemies[i].transform.position) < soundRadius)
             {
                 //Debug.Log(i);
-                enemies[i].GetComponent<AIBase>().setAggro();
+                
+                enemies[i].GetComponent<AIBase>().currentSuspicion += 10;
+                if (enemies[i].GetComponent<AIBase>().aiState != AIBase.AIState.dead && enemies[i].GetComponent<AIBase>().aiState != AIBase.AIState.aggro)
+                {
+                    enemies[i].GetComponent<AIBase>().aiState = AIBase.AIState.suspicious;
+                }
             }
+            if (Vector3.Distance(transform.position, enemies[i].transform.position) < splashRadius)
+            {
+                enemiesWithinSplash.Add(enemies[i] as GameObject);
+                distanceToEnemies.Add(Vector3.Distance(transform.position, enemies[i].transform.position));
+            }
+            if (i+1 == enemies.Length)
+            {
+                
+                distanceToPlayer = Vector3.Distance(transform.position, player.transform.position);
+                
+                if (distanceToPlayer < splashRadius)
+                {
+                    wasPlayerHit = true;
+                }
+            }
+            
+
         }
+        GetComponent<PotionFunctionScript>().potionCollide(potionName, enemiesWithinSplash, distanceToEnemies, transform.position, distanceToPlayer, player, wasPlayerHit);
+        transform.GetChild(1).gameObject.GetComponent<ParticleSystem>().Stop();
         GetComponent<DeleteAfterTime>().triggered = true;
     }
 }

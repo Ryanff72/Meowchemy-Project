@@ -30,6 +30,8 @@ public class PlayerController : MonoBehaviour
     public GameObject wctr;
     public GameObject wcbl;
     public GameObject wctl;
+    public GameObject ccr;
+    public GameObject ccl;
     public GameObject spriteParent;
     
 
@@ -57,9 +59,10 @@ public class PlayerController : MonoBehaviour
 
     [Header("Misc")]
     private Animator anim;
-    public enum PlayerState {neutral, frozen};
+    public enum PlayerState {neutral, frozen, dead};
     public PlayerState ps;
     public Transform respawnPos;
+    private bool velHasDiminished;
 
     void Start()
     {
@@ -85,62 +88,82 @@ public class PlayerController : MonoBehaviour
             case PlayerState.frozen:
                 Freeze();
                 break;
+            case PlayerState.dead:
+                Dead();
+                break;
         }
     }
     //for moving left/right
     private void FixedUpdate()
     {
-         //this stuff stops the player when they stop moving
-         if ((Input.GetAxis("Horizontal") == 0) || (canMoveLeft == false || canMoveRight == false))
-         {
-             float xVelocity = 0;
-             velocity = new Vector2(Mathf.SmoothDamp(velocity.x, 0, ref xVelocity, decelSpeed), velocity.y);
-            if (grounded)
+        if (ps != PlayerState.dead)
+        {
+            //this stuff stops the player when they stop moving
+            if ((Input.GetAxis("Horizontal") == 0) || (canMoveLeft == false || canMoveRight == false))
             {
-                anim.SetBool("Run", false);
-            }
-            
-         }
+                float xVelocity = 0;
+                velocity = new Vector2(Mathf.SmoothDamp(velocity.x, 0, ref xVelocity, decelSpeed), velocity.y);
+                if (grounded)
+                {
+                    anim.SetBool("Run", false);
+                }
 
-        if (moveright)
-        {
-            float xVelocity = 0;
-            velocity.x = Mathf.SmoothDamp(velocity.x, maxSpeed, ref xVelocity, accelSpeed);
-            spriteParent.transform.localScale = new Vector3(1, 1, 1);
-            if (grounded)
+            }
+
+            if (moveright)
             {
-                anim.SetBool("Run", true);
+                float xVelocity = 0;
+                velocity.x = Mathf.SmoothDamp(velocity.x, maxSpeed, ref xVelocity, accelSpeed);
+                spriteParent.transform.localScale = new Vector3(1, 1, 1);
+                if (grounded)
+                {
+                    anim.SetBool("Run", true);
+                }
+            }
+            if (moveleft)
+            {
+                float xVelocity = 0;
+                velocity.x = Mathf.SmoothDamp(velocity.x, -maxSpeed, ref xVelocity, accelSpeed);
+                spriteParent.transform.localScale = new Vector3(-1, 1, 1);
+                if (grounded)
+                {
+                    anim.SetBool("Run", true);
+                }
             }
         }
-        if (moveleft)
-        {
-            float xVelocity = 0;
-            velocity.x = Mathf.SmoothDamp(velocity.x, -maxSpeed, ref xVelocity, accelSpeed);
-            spriteParent.transform.localScale = new Vector3(-1, 1, 1);
-            if (grounded)
-            {
-                anim.SetBool("Run", true);
-            }
-        }
-        
+         
     }
     void Update()
     {
         //runs da state machine bc you know
         StateMachine();
-      
+
+        RaycastHit2D GroundCheckLeft = Physics2D.Linecast(leftGc.transform.position, leftGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        if (GroundCheckLeft.collider != null || GroundCheckRight.collider != null)
+        {
+            grounded = true;
+        }
+        else
+        {
+            grounded = false;
+        }
+
     }
     void Movement()
     {
         //checks
-            //check for wall on right
+            //check for wall in various directions
             RaycastHit2D WallCheckBottomRight = Physics2D.Linecast(wcbr.transform.position, wcbr.transform.position - new Vector3(0, 0, 0), 1 << LayerMask.NameToLayer("Ground"));
             RaycastHit2D WallCheckTopRight = Physics2D.Linecast(wctr.transform.position, wctr.transform.position - new Vector3(0, 0, 0), 1 << LayerMask.NameToLayer("Ground"));
             RaycastHit2D WallCheckBottomLeft = Physics2D.Linecast(wcbl.transform.position, wcbl.transform.position - new Vector3(0, 0, 0), 1 << LayerMask.NameToLayer("Ground"));
             RaycastHit2D WallCheckTopLeft = Physics2D.Linecast(wctl.transform.position, wctl.transform.position - new Vector3(0, 0, 0), 1 << LayerMask.NameToLayer("Ground"));
+            RaycastHit2D CeilingCheckRight = Physics2D.Linecast(ccr.transform.position, ccr.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+            RaycastHit2D CeilingCheckLeft = Physics2D.Linecast(ccl.transform.position, ccl.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
             if (WallCheckBottomRight == true || WallCheckTopRight == true)
             {
                 canMoveRight = false;
+                moveright = false;
             }
             else
             {
@@ -149,15 +172,19 @@ public class PlayerController : MonoBehaviour
             if (WallCheckBottomLeft == true || WallCheckTopLeft == true)
             {
                 canMoveLeft = false;
+                moveleft = false;
             }
             else
             {
                 canMoveLeft = true;
             }
-            //check for ground
-            RaycastHit2D GroundCheckLeft = Physics2D.Linecast(leftGc.transform.position, leftGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-            RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-            if (GroundCheckLeft.collider != null || GroundCheckRight.collider != null)
+            if (CeilingCheckLeft.collider != null || CeilingCheckRight.collider != null)
+            {
+                velocity = new Vector2(velocity.x, Mathf.Abs(velocity.y) * -0.7f);
+            }
+        //check for ground
+        
+            if (grounded == true)
             {
                 if (earlyJumpTriggered == true)
                 {
@@ -247,6 +274,94 @@ public class PlayerController : MonoBehaviour
             moveleft = false;
 
         }
+    }
+    void Dead()
+    {
+        bool nearGrounded;
+        rb2d.velocity = velocity;
+        if (velocity.x > 0)
+        {
+            anim.gameObject.transform.localScale = new Vector3(1, 1, 0.5f);
+        }
+        else
+        {
+            anim.gameObject.transform.localScale = new Vector3(1, -1, 0.5f);
+        }
+
+        GetComponent<BoxCollider2D>().size = new Vector2(1.5f, 1);
+        leftGc.transform.localPosition = new Vector3(-0.74f, -0.27f, 0);
+        rightGc.transform.localPosition = new Vector3(0.74f, -0.27f, 0);
+        wcbr.transform.localPosition = new Vector3(0.78f, -0.24f, 0);
+        wcbl.transform.localPosition = new Vector3(-0.78f, -0.24f, 0);
+        wctl.transform.localPosition = new Vector3(-0.78f, 0.24f, 0);
+        wctr.transform.localPosition = new Vector3(0.78f, 0.24f, 0);
+        ccl.transform.localPosition = new Vector3(-0.75f, 0.27f, 0);
+        ccl.transform.localPosition = new Vector3(0.75f, 0.27f, 0);
+        RaycastHit2D NearGroundCheckLeft = Physics2D.Linecast(leftGc.transform.position + new Vector3(0, -0.2f, 0), leftGc.transform.position + new Vector3(0, -0.2f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D NearGroundCheckRight = Physics2D.Linecast(rightGc.transform.position+ new Vector3(0,-0.2f,0), rightGc.transform.position + new Vector3(0, -0.2f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D GroundCheckLeft = Physics2D.Linecast(leftGc.transform.position, leftGc.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckBottomRight = Physics2D.Linecast(wcbr.transform.position, wcbr.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckTopRight = Physics2D.Linecast(wctr.transform.position, wctr.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckBottomLeft = Physics2D.Linecast(wcbl.transform.position, wcbl.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckTopLeft = Physics2D.Linecast(wctl.transform.position, wctl.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D CeilingCheckRight = Physics2D.Linecast(ccr.transform.position, ccr.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D CeilingCheckLeft = Physics2D.Linecast(ccl.transform.position, ccl.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        if (NearGroundCheckLeft.collider != null || NearGroundCheckRight. collider != null)
+        {
+            nearGrounded = true;
+            velocity.x = Mathf.Lerp(velocity.x, 0, Time.deltaTime * 3f);
+        }
+        else
+        {
+            nearGrounded = false;
+        }
+        if (GroundCheckLeft.collider != null || GroundCheckRight.collider != null)
+        {
+             velocity.y = Mathf.Abs(velocity.y);
+            velHasDiminished = false;
+        }
+        else if (velHasDiminished == false)
+        {
+            velHasDiminished = true;
+            velocity.x *= 0.5f;
+            velocity.y *= 0.5f;
+        }
+        if (WallCheckBottomLeft.collider != null || WallCheckTopLeft.collider != null)
+        {
+            velocity.x = Mathf.Abs(velocity.x);
+        }
+        if (WallCheckBottomRight.collider != null || WallCheckTopRight.collider != null)
+        {
+            velocity.x = -Mathf.Abs(velocity.x);
+        }
+        if (CeilingCheckLeft.collider != null || CeilingCheckRight.collider != null)
+        {
+            velocity.y = -Mathf.Abs(velocity.y);
+        }
+        if (velocity.y > -0.5f)
+        {
+            anim.SetBool("DeadUp", true);
+            anim.SetBool("DeadDown", false);
+        }
+        else
+        {
+            anim.SetBool("DeadUp", false);
+            anim.SetBool("DeadDown", true);
+        }
+        if (nearGrounded == false)//workaround for gravity being wonky
+        {
+            velocity.y += gravity * Time.deltaTime * 0.8f;
+        }
+        else
+        {
+            if (velocity.y > 0)
+            {
+                velocity.y -= 0.2f;
+            }
+        }
+        velocity.x = Mathf.Lerp(velocity.x, 0, Time.deltaTime * 0.2f);
+        rb2d.velocity = velocity;
     }
     void JumpAble()
     {

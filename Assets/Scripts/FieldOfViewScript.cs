@@ -27,70 +27,80 @@ public class FieldOfViewScript : MonoBehaviour
 
     private void LateUpdate()
     {
-
-        GetComponent<MeshFilter>().sharedMesh = mesh;
-        GetComponent<MeshFilter>().sharedMesh.RecalculateBounds();
-        GetComponent<MeshFilter>().sharedMesh.RecalculateNormals();
-
-        transform.position = transform.parent.position - transform.parent.position;
-        int rayCount = 250;
-        angle = startingAngle;
-        float angleIncrease = fov / rayCount;
-        float viewDistance = 12f;
-
-        Vector3[] vertices = new Vector3[rayCount + 2];
-        Vector2[] uv = new Vector2[vertices.Length];
-        int[] triangles = new int[rayCount * 3];
-
-        vertices[0] = origin;
-
-        int vertexIndex = 1;
-        int triangleIndex = 0;
-        for (int i = 0; i <= rayCount; i++)
+        if (transform.parent.GetComponent<AIBase>().aiState != AIBase.AIState.dead && transform.parent.GetComponent<AIBase>().aiState != AIBase.AIState.aggro)
         {
-            Vector3 vertex;
-            RaycastHit2D rayCastHit = Physics2D.Raycast(origin, new Vector3(Mathf.Cos(angle * (Mathf.PI / 180f)), Mathf.Sin(angle * Mathf.PI / 180f)), viewDistance, layermask);
-            if (rayCastHit.collider == null)
-            {
-                vertex = origin + (new Vector3(Mathf.Cos(angle * (Mathf.PI / 180f)), Mathf.Sin(angle * Mathf.PI / 180f)) * viewDistance);
-            }
-            else if (rayCastHit.collider.gameObject.layer == 3)
-            {
-                canSeePlayer = true;
-                StartCoroutine("canSeePlayerDeterminer");
-                vertex = rayCastHit.point;
-                suspicionMultiplier = viewDistance-Vector3.Distance(origin, rayCastHit.point);
-            }
-            else
-            {
-                vertex = rayCastHit.point;
-            }
-            vertices[vertexIndex] = vertex;
+            GetComponent<MeshFilter>().sharedMesh = mesh;
+            GetComponent<MeshFilter>().sharedMesh.RecalculateBounds();
+            GetComponent<MeshFilter>().sharedMesh.RecalculateNormals();
 
-            if (i > 0)
-            {
-                triangles[triangleIndex + 0] = 0;
-                triangles[triangleIndex + 1] = vertexIndex - 1;
-                triangles[triangleIndex + 2] = vertexIndex;
+            transform.position = transform.parent.position - transform.parent.position;
+            int rayCount = 200;
+            angle = startingAngle;
+            float angleIncrease = fov / rayCount;
+            float viewDistance = 12f;
 
-                triangleIndex += 3;
+            Vector3[] vertices = new Vector3[rayCount + 2];
+            Vector2[] uv = new Vector2[vertices.Length];
+            int[] triangles = new int[rayCount * 3];
+
+            vertices[0] = origin;
+
+            int vertexIndex = 1;
+            int triangleIndex = 0;
+            for (int i = 0; i <= rayCount; i++)
+            {
+                Vector3 vertex;
+                RaycastHit2D rayCastHit = Physics2D.Raycast(origin, new Vector3(Mathf.Cos(angle * (Mathf.PI / 180f)), Mathf.Sin(angle * Mathf.PI / 180f)), viewDistance, layermask);
+                if (rayCastHit.collider == null)
+                {
+                    vertex = origin + (new Vector3(Mathf.Cos(angle * (Mathf.PI / 180f)), Mathf.Sin(angle * Mathf.PI / 180f)) * viewDistance);
+                }
+                else if (rayCastHit.collider.gameObject.layer == 3)
+                {
+                    canSeePlayer = true;
+                    suspicionMultiplier = viewDistance - Vector3.Distance(origin, rayCastHit.point);
+                    StartCoroutine("canSeePlayerDeterminer");
+                    vertex = rayCastHit.point;
+                }    
+                else if (rayCastHit.collider.gameObject.layer == 8 || (rayCastHit.collider.gameObject.layer == 10 && rayCastHit.collider.gameObject.GetComponent<AIBase>().killedByOtherAI == false))
+                {
+                    vertex = rayCastHit.point;
+                    if (transform.parent.gameObject.GetComponent<AIBase>().aiState != AIBase.AIState.aggro)
+                    {
+                        transform.parent.gameObject.GetComponent<AIBase>().aiState = AIBase.AIState.suspicious;
+                    }
+                }
+                else
+                {
+                    vertex = rayCastHit.point;
+                }
+                vertices[vertexIndex] = vertex;
+
+                if (i > 0)
+                {
+                    triangles[triangleIndex + 0] = 0;
+                    triangles[triangleIndex + 1] = vertexIndex - 1;
+                    triangles[triangleIndex + 2] = vertexIndex;
+
+                    triangleIndex += 3;
+                }
+
+                vertexIndex++;
+
+                angle -= angleIncrease;
             }
 
-            vertexIndex++;
+            mesh.vertices = vertices;
+            mesh.uv = uv;
+            mesh.triangles = triangles;
 
-            angle -= angleIncrease;
+            if (transform.parent.GetComponent<AIBase>().aiState == AIBase.AIState.aggro)
+            {
+                GetComponent<MeshRenderer>().enabled = false;
+                progressBar.gameObject.SetActive(false);
+            }
+            progressBar.gameObject.transform.position = origin + new Vector3(0, 2, 0);
         }
-
-        mesh.vertices = vertices;
-        mesh.uv = uv;
-        mesh.triangles = triangles;
-
-        if (transform.parent.GetComponent<AIBase>().aiState == AIBase.AIState.aggro)
-        {
-            GetComponent<MeshRenderer>().enabled = false;
-            progressBar.gameObject.SetActive(false);
-        }
-        progressBar.gameObject.transform.position = origin + new Vector3 (0,2,0);
     }
 
     public void SetOrigin(Vector3 origin)
