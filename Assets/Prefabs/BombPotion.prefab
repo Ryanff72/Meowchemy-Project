@@ -10,7 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 2051028435}
   - component: {fileID: 2051028434}
-  m_Layer: 0
+  - component: {fileID: 6127810312343117679}
+  m_Layer: 8
   m_Name: BombPotion1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -25,7 +26,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2051028432}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.037, y: 0.076, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.096810184, y: 0.096810184, z: 0.096810184}
   m_Children: []
   m_Father: {fileID: 683338435840701487}
@@ -82,6 +83,22 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!58 &6127810312343117679
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2051028432}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 0.1
 --- !u!1 &683338435840701456
 GameObject:
   m_ObjectHideFlags: 0
@@ -140,6 +157,7 @@ MonoBehaviour:
   distanceToPlayer: 0
   enemies: []
   enemiesWithinSplash: []
+  enemiesWithinSound: []
   potionName: BombPotion
 --- !u!50 &683338435840701458
 Rigidbody2D:
@@ -177,7 +195,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.23
+  m_Radius: 0.3
 --- !u!114 &990761928933192955
 MonoBehaviour:
   m_ObjectHideFlags: 0

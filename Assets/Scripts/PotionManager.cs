@@ -1,18 +1,26 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class PotionManager : MonoBehaviour
 {
 
-    public GameObject potion;
-    public GameObject rightHand;
+    public int equippedPotionIndex = 0;
+    public GameObject leftHand;
     public float maxThrowForce;
     private float throwForce;
     public float gravity;
+    public int[] numberPotionsRemaining;
+    public GameObject[] Potions;
+    public GameObject hotBar;
+    [SerializeField] private GameObject Projectile;
+    [SerializeField] private GameObject gunTip;
+    public List<GameObject> enemiesWithinSound = new List<GameObject>();
     Vector2 direction;
     float distanceToMouse;
     GameObject ThrownPotion;
+    SoundManagerScript sms;
 
     public GameObject player;
 [Header("Points")]
@@ -22,15 +30,41 @@ public class PotionManager : MonoBehaviour
     GameObject[] points;
     public int numberOfPoints;
     public float spaceBetweenPoints;
+    Vector3 heldPotionSize;
 
     // Start is called before the first frame update
     void Start()
     {
+        sms = GameObject.Find("SoundManager").GetComponent<SoundManagerScript>();
+        heldPotionSize = transform.GetChild(0).transform.localScale;
         points = new GameObject[numberOfPoints];
         for (int i  = 0; i< numberOfPoints; i++)
         {
             points[i] = Instantiate(point, transform.position, Quaternion.identity);
             points[i].GetComponent<SpriteRenderer>().enabled = false;
+        }
+        //updats # of potions
+        for (int i = 0; i < Potions.Length; i++)
+        {
+            hotBar.transform.GetChild(i).transform.GetChild(2).GetComponent<TextMeshProUGUI>().text=numberPotionsRemaining[i].ToString();
+            hotBar.transform.GetChild(i).transform.GetChild(3).GetComponent<SpriteRenderer>().sprite = Potions[i].transform.GetChild(0).GetComponent<SpriteRenderer>().sprite;
+
+        }
+        for (int o = 0; o < hotBar.transform.childCount; o++)
+        {
+            if (o > Potions.Length-1)
+            {
+                hotBar.transform.GetChild(o).gameObject.SetActive(false);
+            }
+        }
+        //decides if potions should be rendered in the player's hand
+        if (numberPotionsRemaining[equippedPotionIndex] > 0)
+        {
+            transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Potions[equippedPotionIndex].transform.GetChild(0).GetComponent<SpriteRenderer>().sprite;
+        }
+        else
+        {
+            transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
         }
 
     }
@@ -38,87 +72,190 @@ public class PotionManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        direction = mousePosition - new Vector2 (transform.parent.position.x, transform.parent.position.y);
-        distanceToMouse = Vector2.Distance(mousePosition, player.transform.position);
-        transform.right = direction;
-        //decides where the players hand is
-        transform.position = rightHand.transform.position;
-        //throw force decider
-        if (distanceToMouse > 10 || distanceToMouse == 0)
+        //aiming stuff
+        if (player.GetComponent<PlayerController>().hasWeapon == false)
         {
-            throwForce = maxThrowForce;
-            numberOfPoints = 50;
-        }
-        else
-        {
-            throwForce = maxThrowForce * (distanceToMouse/10);
-            //numberOfPoints = 25 - Mathf.RoundToInt(24-distanceToMouse*2.4f);
-        }
-
-        //handles if the line shows for aiming or not
-        if (Input.GetButton("Aim"))
-        {
-            for (int i = 0; i < numberOfPoints; i++)
+            Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            direction = mousePosition - new Vector2(transform.parent.position.x, transform.parent.position.y);
+            distanceToMouse = Vector2.Distance(mousePosition, player.transform.position);
+            transform.right = direction;
+            //decides where the players hand is
+            transform.position = leftHand.transform.position + new Vector3(0, 0.3f, 0);
+            //makes the player be able to scroll through potions
+            if (Input.GetAxis("Mouse ScrollWheel") > 0f) // forwards
             {
-                
-                RaycastHit2D GroundCheckForPoints = Physics2D.Linecast(points[i].transform.position, points[i].transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-                if (GroundCheckForPoints.collider != null)
+                if (equippedPotionIndex == Potions.Length - 1)
                 {
-                    points[i].GetComponent<SpriteRenderer>().enabled = false;
-                    for (int o = i; o < (numberOfPoints); o++)
-                    {
-                        points[o].GetComponent<SpriteRenderer>().enabled = false;
-                    }
-                    lastPoint = i;
+                    equippedPotionIndex = 0;
                 }
                 else
                 {
-                    if (i < lastPoint)
-                    {
-                        points[i].GetComponent<SpriteRenderer>().enabled = true;
-                    }
-                    
+                    equippedPotionIndex++;
                 }
-                if (i == numberOfPoints)
+                for (int i = 0; i < Potions.Length; i++)
                 {
-                    lastPoint = numberOfPoints;
+                    hotBar.transform.GetChild(i).transform.GetChild(4).GetComponent<SpriteRenderer>().enabled = false;
                 }
-                
+                if (numberPotionsRemaining[equippedPotionIndex] > 0)
+                {
+                    transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = true;
+                }
+                else
+                {
+                    transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
+                }
+                transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Potions[equippedPotionIndex].transform.GetChild(0).GetComponent<SpriteRenderer>().sprite;
+                hotBar.transform.GetChild(equippedPotionIndex).transform.GetChild(4).GetComponent<SpriteRenderer>().enabled = true;
             }
-        }
-        if(Input.GetButtonUp("Aim"))
-        {
+            else if (Input.GetAxis("Mouse ScrollWheel") < 0f) // backwards
+            {
+                if (equippedPotionIndex == 0)
+                {
+                    equippedPotionIndex = Potions.Length - 1;
+                }
+                else
+                {
+                    equippedPotionIndex--;
+                }
+                for (int i = 0; i < Potions.Length; i++)
+                {
+                    hotBar.transform.GetChild(i).transform.GetChild(4).GetComponent<SpriteRenderer>().enabled = false;
+                }
+                if (numberPotionsRemaining[equippedPotionIndex] > 0)
+                {
+                    transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = true;
+                }
+                else
+                {
+                    transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
+                }
+                transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Potions[equippedPotionIndex].transform.GetChild(0).GetComponent<SpriteRenderer>().sprite;
+                hotBar.transform.GetChild(equippedPotionIndex).transform.GetChild(4).GetComponent<SpriteRenderer>().enabled = true;
+            }
+            //does stuff with the sprite of the potion in the players hand
+            if (transform.GetChild(0).rotation.eulerAngles.z > 270 || transform.GetChild(0).rotation.eulerAngles.z < 90)
+            {
+                transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().flipX = false;
+                transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().flipY = false;
+            }
+            else
+            {
+                transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().flipX = true;
+                transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().flipY = true;
+            }
+            transform.GetChild(0).transform.localScale = Vector3.Lerp(transform.GetChild(0).transform.localScale, heldPotionSize, Time.deltaTime * 5f);
+            //throw force decider
+            if (distanceToMouse > 10 || distanceToMouse == 0)
+            {
+                throwForce = maxThrowForce;
+                numberOfPoints = 50;
+            }
+            else
+            {
+                throwForce = maxThrowForce * (distanceToMouse / 10);
+                //numberOfPoints = 25 - Mathf.RoundToInt(24-distanceToMouse*2.4f);
+            }
+
+            //handles if the line shows for aiming or not
+            if (Input.GetButton("Aim"))
+            {
+                for (int i = 0; i < numberOfPoints; i++)
+                {
+
+                    RaycastHit2D GroundCheckForPoints = Physics2D.Linecast(points[i].transform.position, points[i].transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+                    if (GroundCheckForPoints.collider != null)
+                    {
+                        points[i].GetComponent<SpriteRenderer>().enabled = false;
+                        for (int o = i; o < (numberOfPoints); o++)
+                        {
+                            points[o].GetComponent<SpriteRenderer>().enabled = false;
+                        }
+                        lastPoint = i;
+                    }
+                    else
+                    {
+                        if (i < lastPoint)
+                        {
+                            points[i].GetComponent<SpriteRenderer>().enabled = true;
+                        }
+
+                    }
+                    if (i == numberOfPoints)
+                    {
+                        lastPoint = numberOfPoints;
+                    }
+
+                }
+            }
+            if (Input.GetButtonUp("Aim"))
+            {
+                for (int i = 0; i < numberOfPoints; i++)
+                {
+                    points[i].GetComponent<SpriteRenderer>().enabled = false;
+                }
+            }
+
+            if (Input.GetButtonDown("Throw")) //&& Input.GetButton("Aim"))
+            {
+                Throw();
+            }
+
+            //does the aiming stuff
             for (int i = 0; i < numberOfPoints; i++)
             {
-                points[i].GetComponent<SpriteRenderer>().enabled = false;
+                points[i].transform.position = PointPosition(i * spaceBetweenPoints);
             }
-        }
 
-        if (Input.GetButtonDown("Throw")) //&& Input.GetButton("Aim"))
-        {
-            Throw();
-        }
-
-        //does the aiming stuff
-        for (int i = 0; i < numberOfPoints; i++)
-        {
-            points[i].transform.position = PointPosition(i * spaceBetweenPoints);
-        }
-
-        for (int i = 0; i < 50; i++)
-        {
-            if (i >= numberOfPoints)
+            for (int i = 0; i < 50; i++)
             {
-                //points[i].GetComponent<SpriteRenderer>().enabled = false;
+                if (i >= numberOfPoints)
+                {
+                    //points[i].GetComponent<SpriteRenderer>().enabled = false;
+                }
             }
         }
-    }
+        else if (Input.GetButtonDown("Throw")) // fires off the weapon
+        {
+            sms.MakeSound(10, transform.position);
+            for (int i = 0; i < Projectile.GetComponent<ProjectileScript>().shotCount; i++)
+            {
+                GameObject NewProj;
+                if (player.transform.GetChild(1).GetChild(0).localScale.x > 0)
+                {
+                    NewProj = Instantiate(Projectile, gunTip.transform.position, Quaternion.identity);
+                    NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(Projectile.GetComponent<ProjectileScript>().ProjectileSpeed, Random.Range(-0.5f, 2f));
+                    player.GetComponent<PlayerController>().velocity = new Vector2(-80, 15);
+                }
+                else
+                {
+                    NewProj = Instantiate(Projectile, gunTip.transform.position, Quaternion.identity);
+                    NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(-Projectile.GetComponent<ProjectileScript>().ProjectileSpeed, Random.Range(-0.5f, 2f));
+                    player.GetComponent<PlayerController>().velocity = new Vector2(80
+                        , 15);
+                }
+            }
+            player.GetComponent<PlayerController>().ammoCount--;
 
+        }
+        
+    }
     void Throw()
     {
-        ThrownPotion = Instantiate(potion, transform.position, Quaternion.identity);
-        ThrownPotion.GetComponent<PotionBase>().velocity = transform.right * throwForce;
+        if (numberPotionsRemaining[equippedPotionIndex] >= 1 && transform.parent.transform.parent.transform.parent.transform.parent.GetComponent<PlayerController>().ps != PlayerController.PlayerState.dead)
+        {
+            ThrownPotion = Instantiate(Potions[equippedPotionIndex], transform.position, Quaternion.identity);
+            ThrownPotion.GetComponent<PotionBase>().velocity = transform.right * throwForce;
+            transform.GetChild(0).transform.localScale = new Vector3(0, 0, 0);
+            numberPotionsRemaining[equippedPotionIndex]--;
+        }
+        if (numberPotionsRemaining[equippedPotionIndex] == 0)
+        {
+            transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
+        }
+        for (int i = 0; i < Potions.Length; i++)
+        {
+            hotBar.transform.GetChild(i).transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = numberPotionsRemaining[i].ToString();
+        }
     }
 
     //for aiming

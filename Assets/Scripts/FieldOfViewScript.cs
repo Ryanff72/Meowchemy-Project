@@ -21,23 +21,26 @@ public class FieldOfViewScript : MonoBehaviour
         mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = mesh;
         fov = 90f;
-        transform.position += new Vector3(-transform.parent.position.x, -transform.parent.position.y, 0f);
+        //transform.position += new Vector3(-transform.parent.position.x, -transform.parent.position.y, 0f);
+        //startingPos = transform.position;
+        origin = transform.position;
         startingPos = transform.position;
     }
 
     private void LateUpdate()
     {
-        if (transform.parent.GetComponent<AIBase>().aiState != AIBase.AIState.dead && transform.parent.GetComponent<AIBase>().aiState != AIBase.AIState.aggro)
+        if (transform.parent.GetComponent<AIBase>().aiState != AIBase.AIState.dead)// && transform.parent.GetComponent<AIBase>().aiState != AIBase.AIState.aggro)
         {
             GetComponent<MeshFilter>().sharedMesh = mesh;
             GetComponent<MeshFilter>().sharedMesh.RecalculateBounds();
             GetComponent<MeshFilter>().sharedMesh.RecalculateNormals();
 
             transform.position = transform.parent.position - transform.parent.position;
+  
             int rayCount = 200;
             angle = startingAngle;
             float angleIncrease = fov / rayCount;
-            float viewDistance = 12f;
+            float viewDistance = 15f;
 
             Vector3[] vertices = new Vector3[rayCount + 2];
             Vector2[] uv = new Vector2[vertices.Length];
@@ -62,12 +65,20 @@ public class FieldOfViewScript : MonoBehaviour
                     StartCoroutine("canSeePlayerDeterminer");
                     vertex = rayCastHit.point;
                 }    
-                else if (rayCastHit.collider.gameObject.layer == 8 || (rayCastHit.collider.gameObject.layer == 10 && rayCastHit.collider.gameObject.GetComponent<AIBase>().killedByOtherAI == false))
+                else if (rayCastHit.collider.gameObject.layer == 8)
                 {
                     vertex = rayCastHit.point;
                     if (transform.parent.gameObject.GetComponent<AIBase>().aiState != AIBase.AIState.aggro)
                     {
                         transform.parent.gameObject.GetComponent<AIBase>().aiState = AIBase.AIState.suspicious;
+                    }
+                }
+                else if ((rayCastHit.collider.gameObject.layer == 10 && rayCastHit.collider.gameObject.GetComponent<AIBase>().killedByOtherAI == false) || rayCastHit.collider.gameObject.layer == 12)
+                {
+                    vertex = rayCastHit.point;
+                    if (transform.parent.gameObject.GetComponent<AIBase>().aiState != AIBase.AIState.aggro)
+                    {
+                        StartCoroutine(transform.parent.gameObject.GetComponent<AIBase>().CallFriendsSus());
                     }
                 }
                 else
@@ -96,16 +107,20 @@ public class FieldOfViewScript : MonoBehaviour
 
             if (transform.parent.GetComponent<AIBase>().aiState == AIBase.AIState.aggro)
             {
-                GetComponent<MeshRenderer>().enabled = false;
-                progressBar.gameObject.SetActive(false);
+                //GetComponent<MeshRenderer>().enabled = false;
+                //progressBar.gameObject.SetActive(false);
             }
-            progressBar.gameObject.transform.position = origin + new Vector3(0, 2, 0);
+            //progressBar.gameObject.transform.position = origin + new Vector3(0, 2, 0);
+        }
+        else
+        {
+            mesh.Clear();
         }
     }
 
     public void SetOrigin(Vector3 origin)
     {
-        this.origin = origin;
+        this.origin = Vector3.Lerp(this.origin, origin, Time.deltaTime *50);
     }
 
     public void SetAimDirection(string aimDirection)
@@ -135,7 +150,7 @@ public class FieldOfViewScript : MonoBehaviour
     private IEnumerator canSeePlayerDeterminer()
     {
         canSeePlayer = true;
-        yield return new WaitForSeconds(0.02f);
+        yield return new WaitForSeconds(1f);
         canSeePlayer = false;
     }
 }

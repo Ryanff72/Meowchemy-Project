@@ -18,8 +18,8 @@ TagManager:
   - Potion
   - EnemyProjectile
   - DeadEnemy
-  - 
-  - 
+  - PotionGroundCollisionHelper
+  - Pickup
   - 
   - 
   - 

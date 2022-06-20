@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using TMPro;
 
 
 public class PlayerController : MonoBehaviour
@@ -22,6 +24,8 @@ public class PlayerController : MonoBehaviour
     public float gravityFall;
     [SerializeField]
     public Vector2 velocity;
+    float savedMaxSpeed;//for when the player is holding a gun
+    float savedJumpHeight;
 
     [Header("Game Objects")]
     public GameObject leftGc;
@@ -32,11 +36,23 @@ public class PlayerController : MonoBehaviour
     public GameObject wctl;
     public GameObject ccr;
     public GameObject ccl;
+    public GameObject leftHand;
+    public GameObject rightHand;
     public GameObject spriteParent;
+    public GameObject landingSmoke;
+    public GameObject pickupAbleWeapon;
+    public GameObject leftPartGun;
+    public GameObject rightPartGun;
+    public GameObject dogGun;
+    public TextMeshProUGUI ammoText;
+    [SerializeField] private GameObject WeaponPickup;
+    
     
 
     [Header("Components")]
     public Rigidbody2D rb2d;
+    public ParticleSystem walkingSmoke;
+
 
     [Header("Bools")]
     public bool grounded; //a bool determined by a raycast checking for the ground
@@ -48,6 +64,10 @@ public class PlayerController : MonoBehaviour
     public bool canMoveRight;
     private bool setyvelzero; //checks if the y velocity is zero when the player is grounded. if it is not, it sets it to be.
     private bool hasSpawnedDashFX = false;
+    private bool hasSquished = false;
+    private bool hasSpawnedLandingFX;
+    public bool canPickUpWeapon;
+    public bool hasWeapon;
 
     [Header("Floats")]
     private float edgeJumpTimer; //the time that the player can jump after leaving an edge
@@ -63,6 +83,8 @@ public class PlayerController : MonoBehaviour
     public PlayerState ps;
     public Transform respawnPos;
     private bool velHasDiminished;
+    private bool enemyInKillingPosition = false;
+    public int ammoCount;
 
     void Start()
     {
@@ -108,6 +130,8 @@ public class PlayerController : MonoBehaviour
                     anim.SetBool("Run", false);
                 }
 
+                
+
             }
 
             if (moveright)
@@ -138,50 +162,112 @@ public class PlayerController : MonoBehaviour
         //runs da state machine bc you know
         StateMachine();
 
-        RaycastHit2D GroundCheckLeft = Physics2D.Linecast(leftGc.transform.position, leftGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        if (GroundCheckLeft.collider != null || GroundCheckRight.collider != null)
+        RaycastHit2D GroundCheck = Physics2D.Linecast(leftGc.transform.position, rightGc.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        if (GroundCheck.collider != null)
         {
             grounded = true;
+            if (hasSpawnedLandingFX == false)
+            {
+                hasSpawnedLandingFX = true;
+                Instantiate(landingSmoke, transform.GetChild(0).transform.position + new Vector3(0,-0.6f,0), Quaternion.Euler(-90, 0, 0));
+                
+            }
+            StartCoroutine("SquishOnLand");//a coroutine that makes a squish animation
         }
         else
         {
+            hasSpawnedLandingFX = false;
             grounded = false;
+            hasSquished = false;
+        }
+        if (Input.GetKey("r"))
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+        if (Input.GetButtonDown("Interact") && canPickUpWeapon == true && hasWeapon == false)
+        {
+            anim.SetBool("HasGun", true);
+            ammoCount = pickupAbleWeapon.GetComponent<GunPickupScript>().ammo;
+            hasWeapon = true;
+            savedMaxSpeed = maxSpeed;
+            maxSpeed = 5;
+            savedJumpHeight = jumpHeight;
+            jumpHeight = 1;
+            Destroy(pickupAbleWeapon.transform.parent.gameObject);
+            dogGun.gameObject.SetActive(true);
+            transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).gameObject.GetComponent<SpriteRenderer>().enabled = false;
+        }
+        else if (hasWeapon == true && Input.GetButtonDown("Interact"))
+        {
+            anim.SetBool("HasGun", false);
+            GameObject InstantiatedWeapon = Instantiate(WeaponPickup, transform.position, Quaternion.identity);
+            InstantiatedWeapon.transform.GetChild(0).GetComponent<GunPickupScript>().ammo = ammoCount;
+            InstantiatedWeapon.transform.GetChild(0).GetComponent<GunPickupScript>().velocity = velocity;
+            maxSpeed = savedMaxSpeed;
+            jumpHeight = savedJumpHeight;
+            dogGun.gameObject.SetActive(false);
+            transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).gameObject.GetComponent<SpriteRenderer>().enabled = true;
+            hasWeapon = false;
+        }
+        if (hasWeapon == true)
+        {
+            ammoText.text = "x" + ammoCount;
+        }
+        if (ammoCount <= 0 && hasWeapon == true)
+        {
+            hasWeapon = false;
+            anim.SetBool("HasGun", false);
+            maxSpeed = savedMaxSpeed;
+            jumpHeight = savedJumpHeight;
+            dogGun.gameObject.SetActive(false);
+            transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).gameObject.GetComponent<SpriteRenderer>().enabled = true;
+            GameObject InstantiatedLeftPart = Instantiate(leftPartGun, transform.position, Quaternion.identity);
+            GameObject InstantiatedRightPart = Instantiate(rightPartGun, transform.position, Quaternion.identity);
+            if (anim.gameObject.transform.localScale.x > 0)
+            {
+                InstantiatedLeftPart.GetComponent<SpriteRenderer>().flipX = true;
+                InstantiatedRightPart.GetComponent<SpriteRenderer>().flipX = true;
+                InstantiatedRightPart.GetComponent<Rigidbody2D>().velocity = new Vector2(-5, 5);
+                InstantiatedLeftPart.GetComponent<Rigidbody2D>().velocity = new Vector2(5, 5);
+            }
+            else
+            {
+                InstantiatedRightPart.GetComponent<Rigidbody2D>().velocity = new Vector2(5, 5);
+                InstantiatedLeftPart.GetComponent<Rigidbody2D>().velocity = new Vector2(-5, 5);
+            }
+            
         }
 
     }
     void Movement()
     {
         //checks
-            //check for wall in various directions
-            RaycastHit2D WallCheckBottomRight = Physics2D.Linecast(wcbr.transform.position, wcbr.transform.position - new Vector3(0, 0, 0), 1 << LayerMask.NameToLayer("Ground"));
-            RaycastHit2D WallCheckTopRight = Physics2D.Linecast(wctr.transform.position, wctr.transform.position - new Vector3(0, 0, 0), 1 << LayerMask.NameToLayer("Ground"));
-            RaycastHit2D WallCheckBottomLeft = Physics2D.Linecast(wcbl.transform.position, wcbl.transform.position - new Vector3(0, 0, 0), 1 << LayerMask.NameToLayer("Ground"));
-            RaycastHit2D WallCheckTopLeft = Physics2D.Linecast(wctl.transform.position, wctl.transform.position - new Vector3(0, 0, 0), 1 << LayerMask.NameToLayer("Ground"));
-            RaycastHit2D CeilingCheckRight = Physics2D.Linecast(ccr.transform.position, ccr.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-            RaycastHit2D CeilingCheckLeft = Physics2D.Linecast(ccl.transform.position, ccl.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-            if (WallCheckBottomRight == true || WallCheckTopRight == true)
-            {
-                canMoveRight = false;
-                moveright = false;
-            }
-            else
-            {
-                canMoveRight = true;
-            }
-            if (WallCheckBottomLeft == true || WallCheckTopLeft == true)
-            {
-                canMoveLeft = false;
-                moveleft = false;
-            }
-            else
-            {
-                canMoveLeft = true;
-            }
-            if (CeilingCheckLeft.collider != null || CeilingCheckRight.collider != null)
-            {
-                velocity = new Vector2(velocity.x, Mathf.Abs(velocity.y) * -0.7f);
-            }
+        //check for wall in various directions
+        RaycastHit2D WallCheckRight = Physics2D.Linecast(wcbr.transform.position, wctr.transform.position - new Vector3(0, 0, 0),1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckLeft = Physics2D.Linecast(wcbl.transform.position, wctl.transform.position - new Vector3(0, 0,0),1<<LayerMask.NameToLayer("Ground"));
+        RaycastHit2D CeilingCheck = Physics2D.Linecast(ccr.transform.position, ccl.transform.position - new Vector3(0, 0.1f, 0),1 << LayerMask.NameToLayer("Ground"));
+        if (WallCheckRight == true)
+        {
+            canMoveRight = false;
+            moveright = false;
+        }
+        else
+        {
+            canMoveRight = true;
+        }
+        if (WallCheckLeft == true)
+        {
+            canMoveLeft = false;
+            moveleft = false;
+        }
+        else
+        {
+            canMoveLeft = true;
+        }
+        if (CeilingCheck.collider != null)
+        {
+            velocity = new Vector2(velocity.x, Mathf.Abs(velocity.y) * -0.7f);
+        }
         //check for ground
         
             if (grounded == true)
@@ -209,6 +295,7 @@ public class PlayerController : MonoBehaviour
                     velocity.y = 0;
                     setyvelzero = true;
                 }
+                anim.SetBool("JumpDown", false);
                 //if (GroundCheckLeft.collider.gameObject.tag != null || GroundCheckRight.collider.gameObject.tag != null)
                 //{
                 //    if (GroundCheckLeft.collider.gameObject.tag == "Platform")
@@ -231,8 +318,16 @@ public class PlayerController : MonoBehaviour
                 {
                     setyvelzero = false;
                 }
-            //gravity
+                 //gravity
                 anim.SetBool("Jump", true); 
+                if (velocity.y < 0)
+                {
+                    anim.SetBool("JumpDown", true);
+                }
+                else
+                {
+                    anim.SetBool("JumpDown", false);
+                }
                 velocity.y += gravity * Time.deltaTime;
                 edgeJumpTimer += Time.deltaTime;
                 grounded = false;
@@ -272,8 +367,57 @@ public class PlayerController : MonoBehaviour
         else
         {
             moveleft = false;
-
         }
+        // smoke walking
+        if (grounded && (moveleft == true || moveright == true))
+        {
+            //ParticleSystem.EmissionModule em = walkingSmoke.emission;
+            //em.enabled = true;
+        }
+        else if (grounded == false || (moveright == false && moveleft == false))
+        {
+            //ParticleSystem.EmissionModule em = walkingSmoke.emission;
+            //em.enabled = false;
+        }
+        // killing stuff, removed for the purpose of keeping the player from overusing lol
+        //RaycastHit2D EnemyCheckLeft = Physics2D.Linecast(transform.position, transform.position + new Vector3(-3, 0, 0), 1 << //LayerMask.NameToLayer("Enemy"));
+        //RaycastHit2D EnemyCheckRight = Physics2D.Linecast(transform.position, transform.position + new Vector3(3, 0, 0), 1 << //LayerMask.NameToLayer("Enemy"));
+        //if (EnemyCheckLeft.collider != null && spriteParent.transform.localScale.x < 0)
+        //{
+        //    enemyInKillingPosition = true;
+        //}
+        //else if (EnemyCheckRight.collider != null && spriteParent.transform.localScale.x > 0)
+        //{
+        //    enemyInKillingPosition = true;
+        //}
+        //else
+        //{
+        //    enemyInKillingPosition = false;
+        //}
+        //if (moveleft == false && moveright == false && Input.GetKeyDown(KeyCode.E) && enemyInKillingPosition == true && //spriteParent.transform.localScale.x < 0)
+        //{
+        //    if (EnemyCheckLeft.collider.gameObject.GetComponent<AIBase>().aiState != AIBase.AIState.aggro && //EnemyCheckLeft.collider.gameObject.GetComponent<AIBase>().aiState != AIBase.AIState.dead)
+        //    {
+        //        canMoveLeft = false;
+        //        canMoveRight = false;
+        //        GameObject HitEnemy = EnemyCheckLeft.collider.gameObject;
+        //        EnemyCheckLeft.collider.gameObject.GetComponent<AIBase>().velocity = new Vector2(0, 0);
+        //        StartCoroutine("KillEnemy", HitEnemy);
+        //    }
+        //    
+        //}
+        //else if (moveleft == false && moveright == false && Input.GetKeyDown(KeyCode.E)  && enemyInKillingPosition == true && //spriteParent.transform.localScale.x > 0)
+        //{
+        //    if (EnemyCheckRight.collider.gameObject.GetComponent<AIBase>().aiState != AIBase.AIState.aggro && //EnemyCheckRight.collider.gameObject.GetComponent<AIBase>().aiState != AIBase.AIState.dead)
+        //    {
+        //        canMoveLeft = false;
+        //        canMoveRight = false;
+        //        GameObject HitEnemy = EnemyCheckRight.collider.gameObject;
+        //        EnemyCheckRight.collider.gameObject.GetComponent<AIBase>().velocity = new Vector2(0, 0);
+        //        StartCoroutine("KillEnemy", HitEnemy);
+        //    }
+        //    
+        //}
     }
     void Dead()
     {
@@ -287,7 +431,15 @@ public class PlayerController : MonoBehaviour
         {
             anim.gameObject.transform.localScale = new Vector3(1, -1, 0.5f);
         }
-
+        canPickUpWeapon = false;
+        if (hasWeapon)
+        {
+            dogGun.gameObject.SetActive(false);
+            hasWeapon = false;
+            GameObject droppedWeapon = Instantiate(WeaponPickup, transform.position, Quaternion.identity);
+            droppedWeapon.transform.GetChild(0).GetComponent<GunPickupScript>().velocity = velocity * 0.7f;
+        }
+        transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).gameObject.GetComponent<SpriteRenderer>().enabled = false;
         GetComponent<BoxCollider2D>().size = new Vector2(1.5f, 1);
         leftGc.transform.localPosition = new Vector3(-0.74f, -0.27f, 0);
         rightGc.transform.localPosition = new Vector3(0.74f, -0.27f, 0);
@@ -297,17 +449,12 @@ public class PlayerController : MonoBehaviour
         wctr.transform.localPosition = new Vector3(0.78f, 0.24f, 0);
         ccl.transform.localPosition = new Vector3(-0.75f, 0.27f, 0);
         ccl.transform.localPosition = new Vector3(0.75f, 0.27f, 0);
-        RaycastHit2D NearGroundCheckLeft = Physics2D.Linecast(leftGc.transform.position + new Vector3(0, -0.2f, 0), leftGc.transform.position + new Vector3(0, -0.2f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D NearGroundCheckRight = Physics2D.Linecast(rightGc.transform.position+ new Vector3(0,-0.2f,0), rightGc.transform.position + new Vector3(0, -0.2f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D GroundCheckLeft = Physics2D.Linecast(leftGc.transform.position, leftGc.transform.position, 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position, 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckBottomRight = Physics2D.Linecast(wcbr.transform.position, wcbr.transform.position, 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckTopRight = Physics2D.Linecast(wctr.transform.position, wctr.transform.position, 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckBottomLeft = Physics2D.Linecast(wcbl.transform.position, wcbl.transform.position, 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckTopLeft = Physics2D.Linecast(wctl.transform.position, wctl.transform.position, 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D CeilingCheckRight = Physics2D.Linecast(ccr.transform.position, ccr.transform.position, 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D CeilingCheckLeft = Physics2D.Linecast(ccl.transform.position, ccl.transform.position, 1 << LayerMask.NameToLayer("Ground"));
-        if (NearGroundCheckLeft.collider != null || NearGroundCheckRight. collider != null)
+        RaycastHit2D NearGroundCheck = Physics2D.Linecast(leftGc.transform.position+ new Vector3(0,-0.1f,0), rightGc.transform.position + new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D GroundCheck = Physics2D.Linecast(leftGc.transform.position, rightGc.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckRight = Physics2D.Linecast(wcbr.transform.position, wctr.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckLeft = Physics2D.Linecast(wcbl.transform.position, wctl.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D CeilingCheck = Physics2D.Linecast(ccr.transform.position, ccl.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        if (NearGroundCheck.collider != null)
         {
             nearGrounded = true;
             velocity.x = Mathf.Lerp(velocity.x, 0, Time.deltaTime * 3f);
@@ -316,10 +463,20 @@ public class PlayerController : MonoBehaviour
         {
             nearGrounded = false;
         }
-        if (GroundCheckLeft.collider != null || GroundCheckRight.collider != null)
+        if (GroundCheck.collider != null)
         {
-             velocity.y = Mathf.Abs(velocity.y);
-            velHasDiminished = false;
+            if (velocity.y < -15f)
+            {
+                velocity.y = Mathf.Abs(velocity.y);
+                velHasDiminished = false;
+            }
+            else
+            {
+                velocity.y = Mathf.Lerp(velocity.y, -1, Time.deltaTime * 10);
+                velocity.x = Mathf.Lerp(velocity.x, 0, Time.deltaTime * 2f);
+            }
+             
+            
         }
         else if (velHasDiminished == false)
         {
@@ -327,40 +484,37 @@ public class PlayerController : MonoBehaviour
             velocity.x *= 0.5f;
             velocity.y *= 0.5f;
         }
-        if (WallCheckBottomLeft.collider != null || WallCheckTopLeft.collider != null)
+        if (WallCheckLeft.collider != null)
         {
             velocity.x = Mathf.Abs(velocity.x);
         }
-        if (WallCheckBottomRight.collider != null || WallCheckTopRight.collider != null)
+        if (WallCheckRight.collider != null)
         {
             velocity.x = -Mathf.Abs(velocity.x);
         }
-        if (CeilingCheckLeft.collider != null || CeilingCheckRight.collider != null)
+        if (CeilingCheck.collider != null)
         {
             velocity.y = -Mathf.Abs(velocity.y);
         }
-        if (velocity.y > -0.5f)
+        if (velocity.y >= -4 && nearGrounded == false)
         {
             anim.SetBool("DeadUp", true);
             anim.SetBool("DeadDown", false);
         }
-        else
+        else if (nearGrounded == false)
         {
             anim.SetBool("DeadUp", false);
             anim.SetBool("DeadDown", true);
         }
+        if (grounded == true || nearGrounded == true)
+        {
+            anim.SetBool("DeadUp", true);
+            anim.SetBool("DeadDown", false);
+        }
         if (nearGrounded == false)//workaround for gravity being wonky
         {
-            velocity.y += gravity * Time.deltaTime * 0.8f;
+            velocity.y += gravity * Time.deltaTime;
         }
-        else
-        {
-            if (velocity.y > 0)
-            {
-                velocity.y -= 0.2f;
-            }
-        }
-        velocity.x = Mathf.Lerp(velocity.x, 0, Time.deltaTime * 0.2f);
         rb2d.velocity = velocity;
     }
     void JumpAble()
@@ -411,7 +565,9 @@ public class PlayerController : MonoBehaviour
         else
         {
             velocity.y = Mathf.Sqrt(jumpHeight * gravity * -2f);
+            anim.gameObject.transform.localScale = new Vector3(1, 1f, 1);
         }
+        
     }
 
     public void Freeze()
@@ -428,6 +584,38 @@ public class PlayerController : MonoBehaviour
         ps = PlayerState.neutral;
     }
 
+   // private IEnumerator KillEnemy(GameObject hitEnemy)
+   // {
+   //         anim.SetBool("IsKilling", true);
+   //         yield return new WaitForSeconds(0.65f);
+   //         if (hitEnemy.GetComponent<AIBase>().aiState != AIBase.AIState.aggro && enemyInKillingPosition == true)
+   //         {
+   //             hitEnemy.GetComponent<AIBase>().aiState = AIBase.AIState.dead;
+   //         }
+   //         else
+   //         {
+   //             anim.SetBool("FailedKill", true);
+   //         }
+   //         yield return new WaitForSeconds(0.8f);
+   //         anim.SetBool("FailedKill", false);
+   //         anim.SetBool("IsKilling", false);
+   //
+   //     
+   // }
+
+    private IEnumerator SquishOnLand()
+    {
+        if (hasSquished == false)
+        {
+            
+            anim.gameObject.transform.parent.transform.localScale = Vector3.Lerp(anim.gameObject.transform.parent.transform.localScale, new Vector3(1.15f, 0.85f, 1), Time.deltaTime * 45f);
+            yield return new WaitForSeconds(0.08f);
+            hasSquished = true;
+
+        }
+        anim.gameObject.transform.parent.transform.localScale = Vector3.Lerp(anim.gameObject.transform.parent.transform.localScale, new Vector3(1, 1f, 1), Time.deltaTime * 45f);
+        
+    }
    
 
   

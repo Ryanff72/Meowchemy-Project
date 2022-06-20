@@ -23,9 +23,9 @@ public class PotionBase : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        enemies = GameObject.FindGameObjectsWithTag("Enemy");
         player = GameObject.Find("Player");
         rb2d = GetComponent<Rigidbody2D>();
+        enemies = GameObject.FindGameObjectsWithTag("Enemy");
     }
 
     // Update is called once per frame
@@ -54,36 +54,31 @@ public class PotionBase : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        rb2d.bodyType = RigidbodyType2D.Static;
+        velocity = new Vector2(0, 0);
         GetComponent<CircleCollider2D>().enabled = false;
-        
+        transform.GetChild(0).GetComponent<CircleCollider2D>().enabled = false;
         Instantiate(HitFX, transform.position, Quaternion.identity);
         gravity = 0;
-        velocity = new Vector2(0, 0);
         transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
         for (int i = 0; i < enemies.Length; i++)
         {
             
-            if (Vector3.Distance(transform.position, enemies[i].transform.position) < soundRadius)
-            {
-                //Debug.Log(i);
-                
-                enemies[i].GetComponent<AIBase>().currentSuspicion += 10;
-                if (enemies[i].GetComponent<AIBase>().aiState != AIBase.AIState.dead && enemies[i].GetComponent<AIBase>().aiState != AIBase.AIState.aggro)
-                {
-                    enemies[i].GetComponent<AIBase>().aiState = AIBase.AIState.suspicious;
-                }
-            }
             if (Vector3.Distance(transform.position, enemies[i].transform.position) < splashRadius)
             {
-                enemiesWithinSplash.Add(enemies[i] as GameObject);
-                distanceToEnemies.Add(Vector3.Distance(transform.position, enemies[i].transform.position));
+                RaycastHit2D GroundCheckBetweenObjects = Physics2D.Linecast(transform.position, enemies[i].transform.position , 1 << LayerMask.NameToLayer("Ground"));
+                if (GroundCheckBetweenObjects.collider == null)
+                {
+                    enemiesWithinSplash.Add(enemies[i] as GameObject);
+                    distanceToEnemies.Add(Vector3.Distance(transform.position, enemies[i].transform.position));
+                    
+                }
             }
             if (i+1 == enemies.Length)
             {
-                
                 distanceToPlayer = Vector3.Distance(transform.position, player.transform.position);
-                
-                if (distanceToPlayer < splashRadius)
+                RaycastHit2D GroundCheckBetweenObjects = Physics2D.Linecast(transform.position, player.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+                if (distanceToPlayer < splashRadius && GroundCheckBetweenObjects.collider == null)
                 {
                     wasPlayerHit = true;
                 }
@@ -91,7 +86,7 @@ public class PotionBase : MonoBehaviour
             
 
         }
-        GetComponent<PotionFunctionScript>().potionCollide(potionName, enemiesWithinSplash, distanceToEnemies, transform.position, distanceToPlayer, player, wasPlayerHit);
+        GetComponent<PotionFunctionScript>().potionCollide(potionName, enemiesWithinSplash, soundRadius, distanceToEnemies, transform.position, distanceToPlayer, player, wasPlayerHit);
         transform.GetChild(1).gameObject.GetComponent<ParticleSystem>().Stop();
         GetComponent<DeleteAfterTime>().triggered = true;
     }

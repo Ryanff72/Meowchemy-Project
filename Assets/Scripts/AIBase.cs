@@ -16,13 +16,17 @@ public class AIBase : MonoBehaviour
     public GameObject WCHR;
     public GameObject CCR;
     public GameObject CCL;
+    public GameObject landingSmoke;
+    public GameObject squishLandHelper;
+    public GameObject gunTip;
+    public GameObject DogGunPickup;
 
     [Header("PatrolSettings")]
     public float leftLimit;
     public float rightLimit;
     public float breakTime; //time a guard will wait when they reach a point
     public float breakRng; //randomness allowed in breaktime, in seconds
-    [SerializeField] private string moveDir;
+    [SerializeField] public string moveDir;
     public float canSee;
     //[SerializeField] private FieldOfView fieldOfView;
 
@@ -42,27 +46,38 @@ public class AIBase : MonoBehaviour
     public Vector2 ShotFireTimeRange;
     public Transform shotPos;
     public GameObject Projectile;
+    private GameObject Player;
     private float jumpTimer;
     private float shotTimer;
-    public int shotCount;
-    public float ProjectileSpeed;
     public float currentSuspicion; //now sus the enemy is
-    private float suspicionTriggerLevel = 100;
+    private float suspicionTriggerLevel = 110;
     private bool queueJump = false;
+    private bool hasSquished = false;
+    private bool hasSpawnedLandingFX = false;
+    private bool nearGrounded = false; // workaround for odd gravity and death stuff
     public Animator anim;
+    public Animator emoAnim;
     [SerializeField] FieldOfViewScript fovScript;
-    public GameObject angerBar;
+    public GameObject susIndicatorGameObject;
+    public Sprite exclamationMarkSprite;
+    public Sprite questionMarkSprite;
     //helps gravity work correctly
-    bool setyVel0;
+    bool setyVel0 = true;
+    bool canPause = false; //for when the ai is sus
+    bool canMove = true; //for when the ai is calling its friends
     public bool killedByOtherAI;
-    string isPaused = "unassigned"; // for suspicion state
+    public string isPaused = "unassigned"; // for suspicion state
     bool velHasDiminished = false;//to help the bouncing after death
+    bool hasCalledFriends = false; //helps to limit how many times frieds are called
+    bool hasCalledFriendsSus = false;
+    bool hasDroppedGun;
 
     void Start()
     {
         rb2d = GetComponent<Rigidbody2D>();
         jumpTimer = JumpTimeRange.y;
         shotTimer = ShotFireTimeRange.y;
+        Player = GameObject.Find("Player");
     }
     public void StateMachine()
     {
@@ -95,7 +110,7 @@ public class AIBase : MonoBehaviour
 
     void Patrol()
     {
-        if(moveDir == "right")
+        if(moveDir == "right" && canMove == true)
         {
             if (transform.position.x <= rightLimit)
             {
@@ -106,7 +121,7 @@ public class AIBase : MonoBehaviour
                 StartCoroutine("PatrolBreak");
             }
         }
-        if (moveDir == "left")
+        if (moveDir == "left" && canMove == true)
         {
             if (transform.position.x >= leftLimit)
             {
@@ -123,11 +138,10 @@ public class AIBase : MonoBehaviour
     void Aggro()
     {
         //check for wall
-        RaycastHit2D WallCheckLowLeft = Physics2D.Linecast(WCLL.transform.position, WCLL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckHighLeft = Physics2D.Linecast(WCHL.transform.position, WCHL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckLeft = Physics2D.Linecast(WCLL.transform.position, WCHL.transform.position, 1 << LayerMask.NameToLayer("Ground"));
         RaycastHit2D WallCheckLowRight = Physics2D.Linecast(WCLR.transform.position, WCLR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
         RaycastHit2D WallCheckHighRight = Physics2D.Linecast(WCHR.transform.position, WCHR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        if (WallCheckHighLeft.collider != null || WallCheckLowLeft.collider != null)
+        if (WallCheckLeft.collider != null)
         {
             velocity.x = speed;
         }
@@ -135,29 +149,24 @@ public class AIBase : MonoBehaviour
         {
             velocity.x = -speed;
         }
+        if (Mathf.Abs(transform.position.x - Player.transform.position.x) > 26 && Mathf.Abs(transform.position.x - Player.transform.position.x) > 30 && shotTimer < 0.1f)
+        {
+            if (transform.position.x > Player.transform.position.x)
+            {
+                velocity.x = -speed;
+            }
+            else if (transform.position.x < Player.transform.position.x)
+            {
+                velocity.x = speed;
+            }
+        }
         shotTimer -= Time.deltaTime;
-        if (shotTimer <= 0 && -1.5f < (transform.position.y-GameObject.Find("Player").transform.position.y) && (transform.position.y - GameObject.Find("Player").transform.position.y) < 1.5f )
+        if (shotTimer <= 0 && -1.5f < (transform.position.y-Player.transform.position.y) && (transform.position.y - Player.transform.position.y) < 1.5f )
         {
             shotTimer = Random.Range(ShotFireTimeRange.x, ShotFireTimeRange.y);
-            for (int i = 0; i < shotCount; i++)
+            for (int i = 0; i < Projectile.GetComponent<ProjectileScript>().shotCount; i++)
             {
-                GameObject NewProj;
-                if (moveDir == "right")
-                {
-                    NewProj = Instantiate(Projectile, new Vector3(transform.position.x + 1, transform.position.y, transform.position.z), Quaternion.identity);
-                }
-                else
-                {
-                    NewProj = Instantiate(Projectile, new Vector3(transform.position.x - 1, transform.position.y, transform.position.z), Quaternion.identity);
-                }
-                if (velocity.x > 0)
-                {
-                    NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(ProjectileSpeed, Random.Range(-0.5f,2f));
-                }
-                else
-                {
-                    NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(-ProjectileSpeed, Random.Range(-0.5f, 2f));
-                }
+                Shoot();
             } 
         }       
         jumpTimer -= Time.deltaTime;
@@ -187,7 +196,52 @@ public class AIBase : MonoBehaviour
         if (aiState == AIState.idle)
         {
             aiState = AIState.boundedPatrol;
-            if (moveDir == "right")
+            if (fovScript.canSeePlayer == false)
+            {
+                if (moveDir == "right")
+                {
+                    moveDir = "left";
+                }
+                else
+                {
+                    moveDir = "right";
+                }
+            }
+            
+        }
+    }
+
+    private IEnumerator Suspicious()
+    {
+        RaycastHit2D GroundCheckLeft = Physics2D.Linecast(leftGc.transform.position, leftGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckLeft = Physics2D.Linecast(WCLL.transform.position, WCHL.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        //RaycastHit2D WallCheckHighLeft = Physics2D.Linecast(WCHL.transform.position, WCHL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckRight = Physics2D.Linecast(WCLR.transform.position, WCHR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        //RaycastHit2D WallCheckHighRight = Physics2D.Linecast(WCHR.transform.position, WCHR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        if ((GroundCheckLeft.collider == null && GroundCheckRight.collider != null)) //|| (WallCheckLeft.collider != null))
+        {
+            canPause = false;
+            //velocity.x = Mathf.Abs(velocity.x);
+            if (fovScript.canSeePlayer == false)
+            {
+                moveDir = "right";
+            }
+            else
+            {
+                moveDir = "left";
+            }
+                
+        }
+        else if (WallCheckLeft.collider != null)
+        {
+            moveDir = "right";
+        }
+        else if ((GroundCheckLeft.collider != null && GroundCheckRight.collider == null)) //|| (WallCheckHighRight.collider != null || WallCheckLowRight.collider != null))
+        {
+            canPause = false;
+            //velocity.x = -Mathf.Abs(velocity.x);
+            if (fovScript.canSeePlayer == false)
             {
                 moveDir = "left";
             }
@@ -196,31 +250,17 @@ public class AIBase : MonoBehaviour
                 moveDir = "right";
             }
         }
-    }
-
-    private IEnumerator Suspicious()
-    {
-        
-        RaycastHit2D GroundCheckLeft = Physics2D.Linecast(leftGc.transform.position, leftGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D CeilingCheckRight = Physics2D.Linecast(CCR.transform.position, CCR.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckLowLeft = Physics2D.Linecast(WCLL.transform.position, WCLL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckHighLeft = Physics2D.Linecast(WCHL.transform.position, WCHL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckLowRight = Physics2D.Linecast(WCLR.transform.position, WCLR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckHighRight = Physics2D.Linecast(WCHR.transform.position, WCHR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        if (GroundCheckLeft.collider == null && GroundCheckRight.collider != null || (WallCheckHighLeft.collider != null || WallCheckLowLeft.collider != null))
+        else if (WallCheckRight.collider != null)
         {
-            //velocity.x = Mathf.Abs(velocity.x);
-            moveDir = "right";
-        }
-        else if (GroundCheckLeft.collider != null && GroundCheckRight.collider == null || (WallCheckHighRight.collider != null || WallCheckLowRight.collider != null))
-        {
-            //velocity.x = -Mathf.Abs(velocity.x);
             moveDir = "left";
         }
-        if (moveDir == "right")
+        if (fovScript.canSeePlayer == false)
         {
-            if (isPaused == "true")
+            canPause = true;
+        }
+        if (moveDir == "right" && canMove == true)
+        {
+            if (isPaused == "true" && canPause == true)
             {
                 velocity.x = 0f;
             }
@@ -230,9 +270,9 @@ public class AIBase : MonoBehaviour
             }
             
         }
-        else
+        else if(canMove == true)
         {
-            if (isPaused == "true")
+            if (isPaused == "true" && canPause == true)
             {
                 velocity.x = 0f;
             }
@@ -241,23 +281,22 @@ public class AIBase : MonoBehaviour
                 velocity.x = -speed;
             }
         }
-        if (isPaused == "false")
+        if (isPaused == "false" && canPause == true)
         {
             yield return new WaitForSeconds(4f);
-            if (Random.Range(0, 100) > 50f && isPaused == "false")
+            if (Random.Range(0, 100) > 50f && isPaused == "false" )
             {
                 isPaused = "true";
                 yield return new WaitForSeconds(Random.Range(2, 5));
                 isPaused = "false";
             }
         }
-        else if (isPaused != "true")
+        else if (isPaused != "true" && canPause == true)
         {
             isPaused = "true";
             yield return new WaitForSeconds(Random.Range(2, 5));
             isPaused = "false";
         }
-        
         
         
         
@@ -269,32 +308,55 @@ public class AIBase : MonoBehaviour
         StateMachine();
         
             
-        fovScript.SetOrigin(transform.position);
+        
         //check for ground
-        RaycastHit2D GroundCheckLeft = Physics2D.Linecast(leftGc.transform.position, leftGc.transform.position - new Vector3(0, -0.1f,0),1<<LayerMask.NameToLayer("Ground"));
-        RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position - new Vector3(0, -0.1f,0),1<<LayerMask.NameToLayer("Ground"));
-        if (GroundCheckLeft.collider != null || GroundCheckRight.collider != null)
+        RaycastHit2D GroundCheck = Physics2D.Linecast(leftGc.transform.position, rightGc.transform.position, 1<<LayerMask.NameToLayer("Ground"));
+        //RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position - new Vector3(0, -0.1f,0),1<<LayerMask.NameToLayer("Ground"));
+        if (GroundCheck.collider != null)// || GroundCheckRight.collider != null)
         {
             grounded = true;
+            StartCoroutine("SquishOnLand");
+            if (hasSpawnedLandingFX == false)
+            {
+                hasSpawnedLandingFX = true;
+                if (aiState != AIState.dead)
+                {
+                    Instantiate(landingSmoke, transform.GetChild(0).transform.position + new Vector3(0, -1.6f, 0), Quaternion.Euler(-90, 0, 0));
+                }
+                else
+                {
+                    Instantiate(landingSmoke, transform.GetChild(0).transform.position + new Vector3(0, -0.8f, 0), Quaternion.Euler(-90, 0, 0));
+                }
+                
+
+            }
+            if (aiState == AIState.dead)
+            {
+                anim.SetBool("DeadUp", true);
+                anim.SetBool("DeadDown", false);
+            }
         }
         else
         {
+            hasSquished = false;
+            hasSpawnedLandingFX = false;
             grounded = false;
         }
         
 
         if (aiState != AIState.dead)
         {
-            if (angerBar.transform.localScale.x <= 1)
-            {
-                angerBar.transform.localScale = new Vector3(currentSuspicion / 100, 1, 1);
-                angerBar.transform.localPosition = new Vector2(-0.5f + (currentSuspicion / 200), 0);
-                if (angerBar.transform.localScale.x >= 1)
+                if (currentSuspicion >= suspicionTriggerLevel)
                 {
-                    angerBar.transform.localScale = new Vector3(1, 1, 0);
-                    angerBar.transform.localPosition = new Vector3(0,0, 0);
+                    susIndicatorGameObject.transform.GetComponent<SpriteRenderer>().sprite = exclamationMarkSprite;
+                    susIndicatorGameObject.transform.localScale = new Vector3(0.5f, 0.5f, 0);
+                    susIndicatorGameObject.transform.localPosition = Vector3.Lerp(susIndicatorGameObject.transform.localPosition, new Vector3(0, -0.75f, 0), Time.deltaTime * 4f);
                 }
-            }
+                else
+                {
+                    susIndicatorGameObject.transform.localScale = new Vector3(currentSuspicion / 200, currentSuspicion / 200, 1);
+                    susIndicatorGameObject.transform.localPosition = new Vector2(0, 0f + (currentSuspicion / 200));
+                }
         }
         
 
@@ -302,26 +364,96 @@ public class AIBase : MonoBehaviour
 
     private void FixedUpdate()
     {
-
+        fovScript.SetOrigin(transform.GetChild(3).position + new Vector3(transform.position.x, transform.position.y + 1.65f, 0));
         if (fovScript.canSeePlayer == true)
         {
-            currentSuspicion += 0.6f*fovScript.suspicionMultiplier;
+            currentSuspicion += 0.8f*fovScript.suspicionMultiplier;
+            //if (Player.GetComponent<PlayerController>().isKilling == true)
+            //{
+                //GameObject NewProj;
+                //if (moveDir == "right")
+                //{
+                //    NewProj = Instantiate(Projectile, new Vector3(transform.position.x + 1.6f, transform.position.y, //transform.position.z), Quaternion.identity);
+                //}
+                //else
+                //{
+                //    NewProj = Instantiate(Projectile, new Vector3(transform.position.x - 1.6f, transform.position.y, //transform.position.z), Quaternion.identity);
+                //}
+                //if (moveDir == "right")
+                //{
+                //    NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(Projectile.GetComponent<ProjectileScript>().ProjectileSpeed, Random.Range(-0.5f, 2f));
+                //}
+                //else
+                //{
+                //    NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(-Projectile.GetComponent<ProjectileScript>().ProjectileSpeed, Random.Range(-0.5f, 2f));
+                //}
+                //setAggro();
+            //}
         }
-        if (currentSuspicion > suspicionTriggerLevel)
+        if (currentSuspicion >= suspicionTriggerLevel)
         {
             setAggro();
+        }
+        if (currentSuspicion > ((suspicionTriggerLevel / 2) - 1) && aiState != AIState.aggro)
+        {
+            StartCoroutine("CallFriendsSus");
         }
         if (velocity.x > 0)
         {
             moveDir = "right";
+            
         }
         else if (velocity.x < 0)
         {
             moveDir = "left";
         }
-        if (grounded == false)
+        if (velocity.x == 0)// for animation 
+        { 
+            anim.SetBool("IsWalking", false);
+            anim.SetBool("IsRunning", false);
+        }
+        else
+        {
+            if (aiState == AIState.aggro)
+            {
+                anim.SetBool("IsWalking", false);
+                if (grounded == true)
+                {
+                    anim.SetBool("IsRunning", true);
+                    anim.SetBool("JumpingUp", false);
+                    anim.SetBool("JumpingDown", false);
+                }
+                else
+                {
+                    anim.SetBool("IsRunning", false);
+                    if (velocity.y > 2)
+                    {
+                        anim.SetBool("JumpingUp", true);
+                        anim.SetBool("JumpingDown", false);
+                    }
+                    else
+                    {
+                        anim.SetBool("JumpingDown", true);
+                        anim.SetBool("JumpingUp", false);
+                    }
+                    
+                    
+                }
+            }
+            else
+            {
+                anim.SetBool("IsWalking", true);
+            }
+
+        }
+        if (grounded == false)//gravity
         {
             velocity.y += gravity;
+            if (aiState != AIState.dead)
+            {
+                setyVel0 = true;
+            }
+            anim.SetBool("JumpingUp", true);
         }
         else
         {
@@ -330,6 +462,8 @@ public class AIBase : MonoBehaviour
                 velocity.y = 0;
                 setyVel0 = false;
             }
+            anim.SetBool("JumpingUp", false);
+            anim.SetBool("JumpingDown", false);
             
         }
         rb2d.velocity = new Vector2(velocity.x, velocity.y);
@@ -338,10 +472,16 @@ public class AIBase : MonoBehaviour
         if (moveDir == "right")
         {
             fovScript.SetAimDirection(moveDir);
+            anim.gameObject.transform.localScale = new Vector3(-1, 1, 1);
+            emoAnim.transform.parent.gameObject.transform.localScale = new Vector3(-1, 1, 1);
+            emoAnim.transform.parent.gameObject.transform.localPosition = new Vector3(0.83f, 2, 1);
         }
         else
         {
             fovScript.SetAimDirection(moveDir);
+            anim.gameObject.transform.localScale = new Vector3(1, 1, 1);
+            emoAnim.transform.parent.gameObject.transform.localScale = new Vector3(1, 1, 1);
+            emoAnim.transform.parent.gameObject.transform.localPosition = new Vector3(-0.83f, 2, 1);
         }
         //makes them hit their head on the ceiling
         RaycastHit2D CeilingCheckRight = Physics2D.Linecast(CCR.transform.position, CCR.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
@@ -379,62 +519,252 @@ public class AIBase : MonoBehaviour
         
         
     }
+    public IEnumerator CallFriendsSus()
+    {
+        if (hasCalledFriendsSus == false && aiState != AIState.dead)
+        {
+            hasCalledFriendsSus = true;
+            anim.SetBool("IsWalking", false);
+            anim.SetBool("IsCalling", true);
+            anim.SetBool("IsRunning", false);
+            canMove = false;
+            velocity.x = 0;
+            aiState = AIState.idle;
+            transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(9).gameObject.SetActive(true);
+            transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(8).gameObject.SetActive(false);
+            yield return new WaitForSeconds(3);
+            canMove = true;
+            anim.SetBool("IsCalling", false);  
+            if (hasCalledFriends == true)
+            {
+                if (aiState != AIState.dead)// && hasCalledFriends == false)
+                {
+                    //hasCalledFriends = true;
+                    transform.parent.GetComponent<DistrictAIManagerScript>().CallAll();
+                    for (int i = 0; i < Projectile.GetComponent<ProjectileScript>().shotCount; i++)
+                    {
+                        Shoot();
+                    }
+
+                }
+            }
+            else
+            {
+                if (aiState != AIState.dead)
+                {
+                    aiState = AIState.suspicious;
+                    transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(9).gameObject.SetActive(false);
+                    transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(8).gameObject.SetActive(true);
+                    transform.parent.GetComponent<DistrictAIManagerScript>().CallAllSus();
+                }
+                
+            }
+        }
+        
+    }
 
     public IEnumerator CallFriends() // talks to the parent to anger all AI in the area
     {
-        anim.Play("Calling");
-        yield return new WaitForSeconds(3.35f);
-        transform.GetChild(2).gameObject.SetActive(false);
-        transform.GetChild(3).gameObject.SetActive(false);
-        if (aiState != AIState.dead)
+        if (hasCalledFriends == false && aiState != AIState.dead)
         {
-            transform.parent.GetComponent<DistrictAIManagerScript>().CallAll();
+            hasCalledFriends = true;
+            anim.SetBool("IsWalking", false);
+            anim.SetBool("IsCalling", true);
+            velocity.x = 0;
+            aiState = AIState.idle;
+            transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(9).gameObject.SetActive(true);
+            transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(8).gameObject.SetActive(false);
+            canMove = false;
+            yield return new WaitForSeconds(3f);
+            canMove = true;
+
+            if (aiState != AIState.dead)// && hasCalledFriends == false)
+            {
+                for (int i = 0; i < Projectile.GetComponent<ProjectileScript>().shotCount; i++)
+                {
+                    Shoot();
+                }
+                transform.parent.GetComponent<DistrictAIManagerScript>().CallAll();
+            }
         }
+        
         
     }
 
     private void DeathProcedure()
     {
-        
-        //check for wall
-        RaycastHit2D WallCheckLowLeft = Physics2D.Linecast(WCLL.transform.position, WCLL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckHighLeft = Physics2D.Linecast(WCHL.transform.position, WCHL.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckLowRight = Physics2D.Linecast(WCLR.transform.position, WCLR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckHighRight = Physics2D.Linecast(WCHR.transform.position, WCHR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D CeilingCheckRight = Physics2D.Linecast(CCR.transform.position, CCR.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D CeilingCheckLeft = Physics2D.Linecast(CCL.transform.position, CCL.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        gameObject.layer = 10;
+        transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(9).gameObject.SetActive(false);
+        transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(8).gameObject.SetActive(false);
+        transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(3).gameObject.SetActive(false);
+        susIndicatorGameObject.gameObject.SetActive(false);
+        transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(10).gameObject.SetActive(true);
+        if (hasDroppedGun == false)
+        {
+            hasDroppedGun = true;
+            GameObject DGP = Instantiate(DogGunPickup, transform.position, Quaternion.identity);
+            DGP.transform.GetChild(0).GetComponent<GunPickupScript>().velocity = velocity * 0.7f;
+        }
+        if (anim.gameObject.transform.localScale.x > 0)
+        {
+            anim.gameObject.transform.localPosition = new Vector3(-0.759f,0.225f,0);
+        }
+        else
+        {
+            anim.gameObject.transform.localPosition = new Vector3(0.728f,0.225f,0);
+        }
+        GetComponent<BoxCollider2D>().offset = new Vector2(0f, 0);
+        leftGc.transform.localPosition = new Vector2(-1.71f, -0.694f);
+        rightGc.transform.localPosition = new Vector3(1.71f, -0.694f, 0);
+        CCL.transform.localPosition = new Vector2(-1.71f, 0.694f);
+        CCR.transform.localPosition = new Vector2(1.71f, 0.694f);
+        WCHL.transform.localPosition = new Vector2(-1.754f, 0.657f);
+        WCLL.transform.localPosition = new Vector2(-1.754f, -0.657f);
+        WCLR.transform.localPosition = new Vector2(1.754f, -0.657f);
+        WCHR.transform.localPosition = new Vector2(1.754f, 0.657f);
+        GetComponent<BoxCollider2D>().size = new Vector2(3.47414f, 1.348f);
+        RaycastHit2D NearGroundCheck = Physics2D.Linecast(leftGc.transform.position + new Vector3(0, -0.1f, 0), rightGc.transform.position + new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckRight = Physics2D.Linecast(WCLR.transform.position, WCHR.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D WallCheckLeft = Physics2D.Linecast(WCLL.transform.position, WCHL.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D CeilingCheck = Physics2D.Linecast(CCR.transform.position, CCL.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        if (velocity.y >= -4 && nearGrounded == false)
+        {
+            anim.SetBool("DeadUp", true);
+            anim.SetBool("DeadDown", false);
+        }
+        else if (nearGrounded == false)
+        {
+            anim.SetBool("DeadUp", false);
+            anim.SetBool("DeadDown", true);
+        }
+        if (NearGroundCheck.collider != null)
+        {
+            nearGrounded = true;
+            velocity.x = Mathf.Lerp(velocity.x, 0, Time.deltaTime * 3f);
+        }
+        else
+        {
+            nearGrounded = false;
+        }
         if (grounded == true)
-        { 
-            if(velocity.y > -2f && velHasDiminished == true)
+        {
+            if (velocity.y < -15f)
             {
-                velocity.y = 0f;
+                velocity.y = Mathf.Abs(velocity.y);
+                velHasDiminished = false;
             }
-            velocity.x = Mathf.Lerp(velocity.x, 0, Time.deltaTime*2f);
-            velocity.y = Mathf.Abs(velocity.y);
-            velHasDiminished = false;
+            else
+            {
+                velocity.y = Mathf.Lerp(velocity.y, -1, Time.deltaTime * 10);
+                velocity.x = Mathf.Lerp(velocity.x, 0, Time.deltaTime * 2f);
+            }
         }
         else if (velHasDiminished == false)
         {
             velHasDiminished = true;
             velocity.x *= 0.5f;
-            velocity.y *= 0.5f;
+            velocity.y *= 0.6f;
         }
-        if (WallCheckHighLeft.collider != null || WallCheckLowLeft.collider != null)
+        if (WallCheckLeft.collider != null)
         {
             velocity.x = Mathf.Abs(velocity.x);
         }
-        else if (WallCheckHighRight.collider != null || WallCheckLowRight.collider != null)
+        if (WallCheckRight.collider != null)
         {
             velocity.x = -Mathf.Abs(velocity.x);
         }
-        else if (CeilingCheckLeft.collider != null || CeilingCheckRight.collider != null)
+        if (CeilingCheck.collider != null)
         {
             velocity.y = -Mathf.Abs(velocity.y);
         }
-        velocity.x = Mathf.Lerp(velocity.x, 0, Time.deltaTime*0.2f);
-        fovScript.gameObject.GetComponent<MeshRenderer>().enabled = false;
-        angerBar.transform.parent.gameObject.SetActive(false);
-        gameObject.layer = 10;
+        if (velocity.y > -2.5f)
+        {
+            anim.SetBool("DeadUp", true);
+            anim.SetBool("DeadDown", false);
+        }
+        else
+        {
+            anim.SetBool("DeadUp", false);
+            anim.SetBool("DeadDown", true);
+        }
+        if (nearGrounded == false)//workaround for gravity being wonky
+        {
+            velocity.y += gravity * Time.deltaTime;
+        }
+        rb2d.velocity = velocity;
+    }
+    //for emotion animation
+    public IEnumerator Surprised()
+    {
+        emoAnim.SetBool("IsSurprised", true);
+        yield return new WaitForSeconds(0.7f);
+        emoAnim.SetBool("IsSurprised", false);
     }
 
+    public IEnumerator Angry()
+    {
+        emoAnim.SetBool("IsAngry", true);
+        yield return new WaitForSeconds(0.7f);
+        emoAnim.SetBool("IsAngry", false);
+    }
+    public IEnumerator Worried()
+    {
+        emoAnim.SetBool("IsWorried", true);
+        yield return new WaitForSeconds(0.7f);
+        emoAnim.SetBool("IsWorried", false);
+    }
+
+    //makes the ai squish when it lands
+    private IEnumerator SquishOnLand()
+    {
+        if (hasSquished == false)
+        {
+
+            squishLandHelper.transform.localScale = Vector3.Lerp(squishLandHelper.transform.localScale, new Vector3(1.1f, 0.9f, 1), Time.deltaTime * 45f);
+            yield return new WaitForSeconds(0.08f);
+            hasSquished = true;
+
+        }
+        squishLandHelper.transform.localScale = Vector3.Lerp(squishLandHelper.transform.localScale, new Vector3(1, 1f, 1), Time.deltaTime * 45f);
+
+    }
+
+    //stimuli responses
+    public void HearSound(Vector3 HitPos)
+    {
+        if (aiState != AIBase.AIState.dead)
+        {
+            if (HitPos.x > transform.position.x)
+            {
+                moveDir = "right";
+            }
+            else
+            {
+                moveDir = "left";
+            }
+            if (velocity.y < 3 && velocity.y < 0.5f && aiState != AIBase.AIState.aggro)
+            {
+                velocity.y = 6;
+            }
+            currentSuspicion += 31;
+            StartCoroutine("Surprised");
+            //enemiesInSound[i].gameObject.GetComponent<AIBase>().aiState = AIBase.AIState.suspicious;
+
+        }
+    }
+
+    private void Shoot()
+    {
+        GameObject NewProj;
+        if (moveDir == "right")
+        {
+            NewProj = Instantiate(Projectile, gunTip.transform.position, Quaternion.identity);
+            NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(Projectile.GetComponent<ProjectileScript>().ProjectileSpeed, Random.Range(-0.5f, 2f));
+        }
+        else
+        {
+            NewProj = Instantiate(Projectile, gunTip.transform.position, Quaternion.identity);
+            NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(-Projectile.GetComponent<ProjectileScript>().ProjectileSpeed, Random.Range(-0.5f, 2f));
+        }
+    }
 }

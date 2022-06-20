@@ -5,7 +5,14 @@ using UnityEngine;
 public class PotionFunctionScript : MonoBehaviour
 {
 
-    public void potionCollide (string potionType, List<GameObject> enemiesInSplash , List<float> distanceToEnemies, Vector3 HitPos, float distanceToPlayer, GameObject player, bool wasPlayerHit)
+    private SoundManagerScript sms;
+
+    private void Start()
+    {
+        sms = GameObject.Find("SoundManager").GetComponent<SoundManagerScript>();
+    }
+
+    public void potionCollide (string potionType, List<GameObject> enemiesInSplash, float soundRadius, List<float> distanceToEnemies, Vector3 HitPos, float distanceToPlayer, GameObject player, bool wasPlayerHit)
     {
         if (potionType == "BombPotion")
         {
@@ -15,21 +22,24 @@ public class PotionFunctionScript : MonoBehaviour
                 {
                     enemiesInSplash[i].gameObject.GetComponent<AIBase>().aiState = AIBase.AIState.dead;
                     Vector3 NormVel = Vector3.Normalize(enemiesInSplash[i].gameObject.transform.position - HitPos);
-                    enemiesInSplash[i].gameObject.GetComponent<AIBase>().velocity = new Vector3(NormVel.x * (45f-distanceToEnemies[i]), (NormVel.y * (60f - distanceToEnemies[i])+8f), 0);
-                        
-                        //new Vector3((enemiesInSplash[i].gameObject.transform.position.x - HitPos.x) * 11f, 
-                        //(enemiesInSplash[i].gameObject.transform.position.y - HitPos.y + 3) * 6f, 0);
-
+                    enemiesInSplash[i].gameObject.GetComponent<AIBase>().velocity = new Vector3(NormVel.x * (65f-distanceToEnemies[i]), (NormVel.y * (80f - distanceToEnemies[i])+6f), 0);
                 }
-                
-
             }
+            sms.MakeSound(soundRadius, HitPos);
             if (wasPlayerHit == true)
             {
                 player.GetComponent<PlayerController>().ps = PlayerController.PlayerState.dead;
                 Vector3 NormVel = Vector3.Normalize(player.gameObject.transform.position - HitPos);
-                player.GetComponent<PlayerController>().velocity = new Vector2(NormVel.x * (35f - distanceToPlayer), (NormVel.y * (80f - distanceToPlayer)));
+                player.GetComponent<PlayerController>().velocity = new Vector2(NormVel.x * (65f - distanceToPlayer), (NormVel.y * (80f - distanceToPlayer)));
             }
+        }
+        if (potionType == "SoundPotion")
+        {
+            sms.MakeSound(soundRadius, HitPos);
+        }
+        if(potionType == "TeleportPotion")
+        {
+
         }
     }
 }
