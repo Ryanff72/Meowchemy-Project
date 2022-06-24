@@ -202,7 +202,7 @@ public class PlayerController : MonoBehaviour
             anim.SetBool("HasGun", false);
             GameObject InstantiatedWeapon = Instantiate(WeaponPickup, transform.position, Quaternion.identity);
             InstantiatedWeapon.transform.GetChild(0).GetComponent<GunPickupScript>().ammo = ammoCount;
-            InstantiatedWeapon.transform.GetChild(0).GetComponent<GunPickupScript>().velocity = velocity;
+            InstantiatedWeapon.GetComponent<SimpleBoxObjectPhysics>().velocity = velocity;
             maxSpeed = savedMaxSpeed;
             jumpHeight = savedJumpHeight;
             dogGun.gameObject.SetActive(false);
@@ -437,18 +437,19 @@ public class PlayerController : MonoBehaviour
             dogGun.gameObject.SetActive(false);
             hasWeapon = false;
             GameObject droppedWeapon = Instantiate(WeaponPickup, transform.position, Quaternion.identity);
-            droppedWeapon.transform.GetChild(0).GetComponent<GunPickupScript>().velocity = velocity * 0.7f;
+            droppedWeapon.transform.GetChild(0).GetComponent<SimpleBoxObjectPhysics>().velocity = velocity * 0.7f;
         }
         transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).gameObject.GetComponent<SpriteRenderer>().enabled = false;
         GetComponent<BoxCollider2D>().size = new Vector2(1.5f, 1);
-        leftGc.transform.localPosition = new Vector3(-0.74f, -0.27f, 0);
-        rightGc.transform.localPosition = new Vector3(0.74f, -0.27f, 0);
-        wcbr.transform.localPosition = new Vector3(0.78f, -0.24f, 0);
-        wcbl.transform.localPosition = new Vector3(-0.78f, -0.24f, 0);
-        wctl.transform.localPosition = new Vector3(-0.78f, 0.24f, 0);
-        wctr.transform.localPosition = new Vector3(0.78f, 0.24f, 0);
-        ccl.transform.localPosition = new Vector3(-0.75f, 0.27f, 0);
-        ccl.transform.localPosition = new Vector3(0.75f, 0.27f, 0);
+        transform.GetChild(1).GetChild(0).transform.localPosition = new Vector3(-0.0109999999f, 1.08899999f, 0);
+        leftGc.transform.localPosition = new Vector3(-0.74f, -0.157f, 0);
+        rightGc.transform.localPosition = new Vector3(0.74f, -0.157f, 0);
+        wcbr.transform.localPosition = new Vector3(0.78f, -0.102f, 0);
+        wcbl.transform.localPosition = new Vector3(-0.78f, -0.102f, 0);
+        wctl.transform.localPosition = new Vector3(-0.78f, 0.835f, 0);
+        wctr.transform.localPosition = new Vector3(0.78f, 0.835f, 0);
+        ccl.transform.localPosition = new Vector3(-0.726f, 0.898f, 0);
+        ccr.transform.localPosition = new Vector3(0.726f, 0.898f, 0);
         RaycastHit2D NearGroundCheck = Physics2D.Linecast(leftGc.transform.position+ new Vector3(0,-0.1f,0), rightGc.transform.position + new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
         RaycastHit2D GroundCheck = Physics2D.Linecast(leftGc.transform.position, rightGc.transform.position, 1 << LayerMask.NameToLayer("Ground"));
         RaycastHit2D WallCheckRight = Physics2D.Linecast(wcbr.transform.position, wctr.transform.position, 1 << LayerMask.NameToLayer("Ground"));

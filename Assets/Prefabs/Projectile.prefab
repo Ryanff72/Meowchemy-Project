@@ -85,6 +85,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shotCount: 3
   ProjectileSpeed: 40
+  playerBullet: 0
+  BulletEffect: {fileID: 1107779523890291858, guid: 0c72c44bf9f27464eba295af7ab42cb5, type: 3}
 --- !u!1 &6099953875020537177
 GameObject:
   m_ObjectHideFlags: 0

@@ -11,12 +11,6 @@ public class SoundManagerScript : MonoBehaviour
     {
         enemies = GameObject.FindGameObjectsWithTag("Enemy");
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
     public void MakeSound(float soundRadius, Vector3 hitPos)
     {
         for (int i = 0; i < enemies.Length; i++)
@@ -41,5 +35,6 @@ public class SoundManagerScript : MonoBehaviour
             enemiesWithinSound[i].GetComponent<AIBase>().HearSound(hitPos);
 
         }
+        enemiesWithinSound.Clear();
     }
 }

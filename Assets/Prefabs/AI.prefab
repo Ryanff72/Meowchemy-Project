@@ -596,7 +596,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 47660512163816479}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -17.47, y: 1.54, z: 0}
+  m_LocalPosition: {x: -12.25, y: 1.7, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 9064692949076962509}
@@ -689,7 +689,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8081819444018542403}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 49.685, y: 4.816, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -725,6 +725,7 @@ MonoBehaviour:
   squishLandHelper: {fileID: 47660512240462040}
   gunTip: {fileID: 47660512163816479}
   DogGunPickup: {fileID: 3766180176046099687, guid: 819522febb1bd734496d99e4f9af4108, type: 3}
+  GunFX: {fileID: 1107779523890291858, guid: dbbe0e29b4055ef4d83be690a0271bb9, type: 3}
   leftLimit: -12.5
   rightLimit: 0
   breakTime: 4

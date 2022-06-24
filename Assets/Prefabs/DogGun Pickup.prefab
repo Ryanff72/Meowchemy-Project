@@ -24,7 +24,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 196851599}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -9.73, y: 3.58, z: 0}
+  m_LocalPosition: {x: -9.73, y: 4.32, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1696993425}
@@ -84,7 +84,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 791664685}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 11.39, y: 3.58, z: 0}
+  m_LocalPosition: {x: 11.39, y: 4.32, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1696993425}
@@ -289,9 +289,10 @@ GameObject:
   - component: {fileID: 3766180176046099686}
   - component: {fileID: 3766180176046099688}
   - component: {fileID: 3766180176046099691}
+  - component: {fileID: 6395407150253720880}
   m_Layer: 12
   m_Name: DogGun Pickup
-  m_TagString: Untagged
+  m_TagString: ObjectPickup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -325,7 +326,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.9, y: -1.04}
+  m_Offset: {x: 0.8999996, y: -0.6884409}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -336,7 +337,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 21.25, y: 8.56}
+  m_Size: {x: 21.25, y: 9.26312}
   m_EdgeRadius: 0.02
 --- !u!50 &3766180176046099691
 Rigidbody2D:
@@ -359,6 +360,29 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
+--- !u!114 &6395407150253720880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3766180176046099687}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d50eb4bbf46aaa447a761d05426c8279, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  velocity: {x: 0, y: 0}
+  gravity: -40
+  leftGc: {fileID: 1989360792}
+  rightGc: {fileID: 646839335}
+  WCLR: {fileID: 1318119495}
+  WCHL: {fileID: 1979185879}
+  WCLL: {fileID: 1563465806}
+  WCHR: {fileID: 1700017124}
+  CCR: {fileID: 791664686}
+  CCL: {fileID: 196851600}
+  landingSmoke: {fileID: 4098662540607346225, guid: 925e6b89bb3c9ee4f96ce3932e88fe99, type: 3}
 --- !u!1 &3766180176383867076
 GameObject:
   m_ObjectHideFlags: 0
@@ -802,14 +826,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ammo: 1
-  velocity: {x: 0, y: 0}
-  gravity: -40
-  leftGc: {fileID: 1989360792}
-  rightGc: {fileID: 646839335}
-  WCLR: {fileID: 1318119495}
-  WCHL: {fileID: 1979185879}
-  WCLL: {fileID: 1563465806}
-  WCHR: {fileID: 1700017124}
-  CCR: {fileID: 791664686}
-  CCL: {fileID: 196851600}
-  landingSmoke: {fileID: 4098662540607346225, guid: 925e6b89bb3c9ee4f96ce3932e88fe99, type: 3}

@@ -6,20 +6,12 @@ public class ProjectileScript : MonoBehaviour
 {
     public int shotCount;
     public float ProjectileSpeed;
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public bool playerBullet = false;
+    [SerializeField] GameObject BulletEffect;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        Instantiate(BulletEffect, transform.position, Quaternion.Euler(-90, 0, 0));
         GetComponent<CircleCollider2D>().enabled = false;
         if (collision.gameObject.layer == 3)
         {
@@ -28,18 +20,30 @@ public class ProjectileScript : MonoBehaviour
         }
         else if (collision.gameObject.layer == 7 && collision.gameObject.GetComponent<AIBase>().killedByOtherAI == false)
         {
-            collision.gameObject.GetComponent<AIBase>().killedByOtherAI = true;
-            collision.gameObject.GetComponent<AIBase>().aiState = AIBase.AIState.dead;
-            if (transform.position.x> collision.transform.position.x)
+            if (playerBullet == false)
             {
-                collision.gameObject.GetComponent<AIBase>().velocity.x = -35f;
+                collision.gameObject.GetComponent<AIBase>().killedByOtherAI = true;
+            }
+            collision.gameObject.GetComponent<AIBase>().aiState = AIBase.AIState.dead;
+            if (transform.position.x > collision.transform.position.x)
+            {
+                collision.gameObject.GetComponent<AIBase>().velocity = new Vector2(GetComponent<Rigidbody2D>().velocity.x, 15);
             }
             else
             {
-                collision.gameObject.GetComponent<AIBase>().velocity.x = 35f;
+                collision.gameObject.GetComponent<AIBase>().velocity = new Vector2(GetComponent<Rigidbody2D>().velocity.x, 15);
             }
             
         }
-        Destroy(gameObject);
+        else if (collision.gameObject.layer == 12)
+        {
+            collision.gameObject.GetComponent<SimpleBoxObjectPhysics>().velocity = new Vector2(GetComponent<Rigidbody2D>().velocity.x, 12);
+        }
+        else if (collision.gameObject.layer == 10)
+        {
+            collision.gameObject.GetComponent<AIBase>().velocity = new Vector2(GetComponent<Rigidbody2D>().velocity.x, 12);
+        }
+        
+            Destroy(gameObject);
     }
 }

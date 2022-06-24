@@ -20,6 +20,7 @@ public class AIBase : MonoBehaviour
     public GameObject squishLandHelper;
     public GameObject gunTip;
     public GameObject DogGunPickup;
+    public GameObject GunFX;
 
     [Header("PatrolSettings")]
     public float leftLimit;
@@ -50,11 +51,12 @@ public class AIBase : MonoBehaviour
     private float jumpTimer;
     private float shotTimer;
     public float currentSuspicion; //now sus the enemy is
-    private float suspicionTriggerLevel = 110;
+    public float suspicionTriggerLevel = 110;
     private bool queueJump = false;
     private bool hasSquished = false;
     private bool hasSpawnedLandingFX = false;
     private bool nearGrounded = false; // workaround for odd gravity and death stuff
+    public bool steadfast;
     public Animator anim;
     public Animator emoAnim;
     [SerializeField] FieldOfViewScript fovScript;
@@ -149,7 +151,7 @@ public class AIBase : MonoBehaviour
         {
             velocity.x = -speed;
         }
-        if (Mathf.Abs(transform.position.x - Player.transform.position.x) > 26 && Mathf.Abs(transform.position.x - Player.transform.position.x) > 30 && shotTimer < 0.1f)
+        if (Mathf.Abs(transform.position.x - Player.transform.position.x) > 30 && Mathf.Abs(transform.position.x - Player.transform.position.x) < 35 && shotTimer < 0.1f)
         {
             if (transform.position.x > Player.transform.position.x)
             {
@@ -161,6 +163,10 @@ public class AIBase : MonoBehaviour
             }
         }
         shotTimer -= Time.deltaTime;
+        if (fovScript.canSeePlayer == true)
+        {
+            transform.parent.GetComponent<DistrictAIManagerScript>().aggroTimeLeft = transform.parent.GetComponent<DistrictAIManagerScript>().aggroTime;
+        }
         if (shotTimer <= 0 && -1.5f < (transform.position.y-Player.transform.position.y) && (transform.position.y - Player.transform.position.y) < 1.5f )
         {
             shotTimer = Random.Range(ShotFireTimeRange.x, ShotFireTimeRange.y);
@@ -213,6 +219,11 @@ public class AIBase : MonoBehaviour
 
     private IEnumerator Suspicious()
     {
+        if (steadfast == true)
+        {
+            canMove = false;
+            canPause = true;
+        }
         RaycastHit2D GroundCheckLeft = Physics2D.Linecast(leftGc.transform.position, leftGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
         RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
         RaycastHit2D WallCheckLeft = Physics2D.Linecast(WCLL.transform.position, WCHL.transform.position, 1 << LayerMask.NameToLayer("Ground"));
@@ -354,7 +365,9 @@ public class AIBase : MonoBehaviour
                 }
                 else
                 {
-                    susIndicatorGameObject.transform.localScale = new Vector3(currentSuspicion / 200, currentSuspicion / 200, 1);
+                    susIndicatorGameObject.transform.GetComponent<SpriteRenderer>().sprite = questionMarkSprite;
+                susIndicatorGameObject.transform.localPosition = Vector3.Lerp(susIndicatorGameObject.transform.localPosition, new Vector3(0, 0, 0), Time.deltaTime * 4f);
+                susIndicatorGameObject.transform.localScale = new Vector3(currentSuspicion / 200, currentSuspicion / 200, 1);
                     susIndicatorGameObject.transform.localPosition = new Vector2(0, 0f + (currentSuspicion / 200));
                 }
         }
@@ -603,7 +616,7 @@ public class AIBase : MonoBehaviour
         {
             hasDroppedGun = true;
             GameObject DGP = Instantiate(DogGunPickup, transform.position, Quaternion.identity);
-            DGP.transform.GetChild(0).GetComponent<GunPickupScript>().velocity = velocity * 0.7f;
+            DGP.GetComponent<SimpleBoxObjectPhysics>().velocity = velocity * 0.7f;
         }
         if (anim.gameObject.transform.localScale.x > 0)
         {
@@ -760,11 +773,15 @@ public class AIBase : MonoBehaviour
         {
             NewProj = Instantiate(Projectile, gunTip.transform.position, Quaternion.identity);
             NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(Projectile.GetComponent<ProjectileScript>().ProjectileSpeed, Random.Range(-0.5f, 2f));
+            GameObject newFX = Instantiate(GunFX, gunTip.transform.position, Quaternion.Euler(-90, 0, 0));
+            newFX.transform.parent = transform;
         }
         else
         {
             NewProj = Instantiate(Projectile, gunTip.transform.position, Quaternion.identity);
             NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(-Projectile.GetComponent<ProjectileScript>().ProjectileSpeed, Random.Range(-0.5f, 2f));
+            GameObject newFX = Instantiate(GunFX, gunTip.transform.position, Quaternion.Euler(-90, 180, 0));
+            newFX.transform.parent = transform;
         }
     }
 }

@@ -28,6 +28,7 @@ public class PotionManager : MonoBehaviour
     int lastPoint=50;
 
     GameObject[] points;
+    public GameObject GunFX;
     public int numberOfPoints;
     public float spaceBetweenPoints;
     Vector3 heldPotionSize;
@@ -161,25 +162,32 @@ public class PotionManager : MonoBehaviour
             {
                 for (int i = 0; i < numberOfPoints; i++)
                 {
-
-                    RaycastHit2D GroundCheckForPoints = Physics2D.Linecast(points[i].transform.position, points[i].transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-                    if (GroundCheckForPoints.collider != null)
+                    if (i != numberOfPoints-1)
                     {
-                        points[i].GetComponent<SpriteRenderer>().enabled = false;
-                        for (int o = i; o < (numberOfPoints); o++)
+                        RaycastHit2D GroundCheckForPoints = Physics2D.Linecast(points[i].transform.position, points[i+1].transform.position, 1 << LayerMask.NameToLayer("Ground"));
+                        RaycastHit2D ObjectCheckForPoints = Physics2D.Linecast(points[i].transform.position, points[i+1].transform.position, 1 << LayerMask.NameToLayer("Pickup"));
+                        RaycastHit2D EnemyCheckForPoints = Physics2D.Linecast(points[i].transform.position, points[i+1].transform.position, 1 << LayerMask.NameToLayer("Enemy"));
+                        RaycastHit2D DeadEnemyCheckForPoints = Physics2D.Linecast(points[i].transform.position, points[i+1].transform.position, 1 << LayerMask.NameToLayer("DeadEnemy"));
+                        if (GroundCheckForPoints.collider != null || ObjectCheckForPoints.collider != null || EnemyCheckForPoints.collider != null || DeadEnemyCheckForPoints.collider != null)
                         {
-                            points[o].GetComponent<SpriteRenderer>().enabled = false;
+                            points[i].GetComponent<SpriteRenderer>().enabled = false;
+                            for (int o = i; o < (numberOfPoints); o++)
+                            {
+                                points[o].GetComponent<SpriteRenderer>().enabled = false;
+                            }
+                            lastPoint = i;
                         }
-                        lastPoint = i;
-                    }
-                    else
-                    {
-                        if (i < lastPoint)
+                        else
                         {
-                            points[i].GetComponent<SpriteRenderer>().enabled = true;
-                        }
+                            if (i < lastPoint)
+                            {
+                                points[i].GetComponent<SpriteRenderer>().enabled = true;
+                            }
 
+                        }
                     }
+                    
+                    
                     if (i == numberOfPoints)
                     {
                         lastPoint = numberOfPoints;
@@ -224,14 +232,18 @@ public class PotionManager : MonoBehaviour
                 {
                     NewProj = Instantiate(Projectile, gunTip.transform.position, Quaternion.identity);
                     NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(Projectile.GetComponent<ProjectileScript>().ProjectileSpeed, Random.Range(-0.5f, 2f));
+                    NewProj.GetComponent<ProjectileScript>().playerBullet = true;
                     player.GetComponent<PlayerController>().velocity = new Vector2(-80, 15);
+                    Instantiate(GunFX, gunTip.transform.position, Quaternion.Euler(-90, 0, 0));
                 }
                 else
                 {
                     NewProj = Instantiate(Projectile, gunTip.transform.position, Quaternion.identity);
                     NewProj.GetComponent<Rigidbody2D>().velocity = new Vector2(-Projectile.GetComponent<ProjectileScript>().ProjectileSpeed, Random.Range(-0.5f, 2f));
+                    NewProj.GetComponent<ProjectileScript>().playerBullet = true;
                     player.GetComponent<PlayerController>().velocity = new Vector2(80
                         , 15);
+                    Instantiate(GunFX, gunTip.transform.position, Quaternion.Euler(-90, 180, 0));
                 }
             }
             player.GetComponent<PlayerController>().ammoCount--;
