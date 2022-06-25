@@ -744,6 +744,8 @@ MonoBehaviour:
   shotPos: {fileID: 8081819444018542414}
   Projectile: {fileID: 406715512430256515, guid: 0dbf7366c7c028b499544e9c863cf307, type: 3}
   currentSuspicion: 0
+  suspicionTriggerLevel: 110
+  steadfast: 0
   anim: {fileID: 8081819445442859002}
   emoAnim: {fileID: 1320895185}
   fovScript: {fileID: 936037687}
@@ -1521,7 +1523,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 4
   m_Sprite: {fileID: 3982249724695832056, guid: 266c068e89e847e459b5907486b61f11, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

@@ -20,7 +20,7 @@ public class FieldOfViewScript : MonoBehaviour
     {
         mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = mesh;
-        fov = 90f;
+        fov = 110f;
         //transform.position += new Vector3(-transform.parent.position.x, -transform.parent.position.y, 0f);
         //startingPos = transform.position;
         origin = transform.position;
@@ -127,11 +127,11 @@ public class FieldOfViewScript : MonoBehaviour
     {
         if (aimDirection == "right")
         {
-            startingAngle = Mathf.Lerp(startingAngle, 45, Time.deltaTime * 20);
+            startingAngle = Mathf.Lerp(startingAngle, 55, Time.deltaTime * 20);
         }
         else if (aimDirection == "left")
         {
-            startingAngle = Mathf.Lerp(startingAngle, 225, Time.deltaTime * 20);
+            startingAngle = Mathf.Lerp(startingAngle, 235, Time.deltaTime * 20);
         }
 
         //Vector3 dir = aimDirection;
