@@ -54,6 +54,10 @@ public class SimpleBoxObjectPhysics : MonoBehaviour
             RaycastHit2D WallCheckRight = Physics2D.Linecast(WCLR.position, WCHR.position, 1 << LayerMask.NameToLayer("Ground"));
             RaycastHit2D WallCheckLeft = Physics2D.Linecast(WCLL.position, WCHL.position, 1 << LayerMask.NameToLayer("Ground"));
             RaycastHit2D CeilingCheck = Physics2D.Linecast(CCR.position, CCL.position, 1 << LayerMask.NameToLayer("Ground"));
+            if (GroundCheck.collider.gameObject.tag == "Platform")
+            {
+                rb2d.velocity = rb2d.velocity + GroundCheck.collider.gameObject.GetComponent<Rigidbody2D>().velocity * Time.fixedDeltaTime;
+            }
             if (NearGroundCheck.collider != null)
             {
                 nearGrounded = true;
