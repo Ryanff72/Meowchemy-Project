@@ -9,6 +9,7 @@ public class AudioProximity : MonoBehaviour
     Transform Player;
     float canPlayMaxTime = 0.5f;
     float canPlayCurrentTime = 0;
+    float mxVolm;
     // Start is called before the first frame update
     void Awake()
     {
@@ -26,14 +27,16 @@ public class AudioProximity : MonoBehaviour
     private void Update()
     {
         canPlayCurrentTime -= Time.deltaTime;
+        audiosrc.volume = mxVolm - (Vector2.Distance(transform.position, Player.position) / mxVolm);
     }
 
     public void PlaySound(AudioClip audioclp, float maxDistance, float maxVolume)
     {
+        mxVolm = maxVolume;
         if (canPlayCurrentTime <= 0)
         {
             canPlayCurrentTime = canPlayMaxTime;
-            audiosrc.volume = maxVolume - (Vector2.Distance(transform.position, Player.position) / maxDistance);
+            
             audiosrc.PlayOneShot(audioclp);
         }
         

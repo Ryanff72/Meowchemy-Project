@@ -23,6 +23,7 @@ public class AIBase : MonoBehaviour
     public GameObject GunFX;
     public GameObject TeleportSmoke;
     public GameObject crushEffect;
+    public GameObject DistrictAIManager;
     [SerializeField] GameObject SoundCreator;
     [SerializeField] AudioClip CallFriendsSound;
 
@@ -177,7 +178,8 @@ public class AIBase : MonoBehaviour
         shotTimer -= Time.deltaTime;
         if (fovScript.canSeePlayer == true)
         {
-            transform.parent.GetComponent<DistrictAIManagerScript>().aggroTimeLeft = transform.parent.GetComponent<DistrictAIManagerScript>().aggroTime;
+            
+            DistrictAIManager.GetComponent<DistrictAIManagerScript>().aggroTimeLeft = DistrictAIManager.GetComponent<DistrictAIManagerScript>().aggroTime;
         }
         if (shotTimer <= 0 && -1.5f < (transform.position.y-Player.transform.position.y) && (transform.position.y - Player.transform.position.y) < 1.5f )
         {
@@ -366,11 +368,16 @@ public class AIBase : MonoBehaviour
             StartCoroutine("SquishOnLand");
             if (GroundCheck.collider.gameObject.tag == "Platform")
             {
-                rb2d.velocity = rb2d.velocity + GroundCheck.collider.gameObject.GetComponent<Rigidbody2D>().velocity * Time.fixedDeltaTime;
+                if (GroundCheck.collider.gameObject.tag == "Platform")
+                {
+                    transform.SetParent(GroundCheck.collider.gameObject.transform);
+                }
+
                 onPlatform = true;
             }
             else
             {
+                transform.parent = null;
                 onPlatform = false;
             }
             if (hasSpawnedLandingFX == false)
@@ -384,7 +391,7 @@ public class AIBase : MonoBehaviour
                 {
                     Instantiate(landingSmoke, transform.GetChild(0).transform.position + new Vector3(0, -0.8f, 0), Quaternion.Euler(-90, 0, 0));
                 }
-                
+
 
             }
             if (aiState == AIState.dead)
@@ -392,6 +399,7 @@ public class AIBase : MonoBehaviour
                 anim.SetBool("DeadUp", true);
                 anim.SetBool("DeadDown", false);
             }
+
         }
         else
         {
@@ -555,7 +563,7 @@ public class AIBase : MonoBehaviour
         if (aiState != AIState.dead)
         {
             
-            if (transform.parent.GetComponent<DistrictAIManagerScript>().HasCalled == false)
+            if (DistrictAIManager.GetComponent<DistrictAIManagerScript>().HasCalled == false)
             {
                 StartCoroutine("CallFriends");
             }
@@ -605,7 +613,7 @@ public class AIBase : MonoBehaviour
                 if (aiState != AIState.dead)// && hasCalledFriends == false)
                 {
                     //hasCalledFriends = true;
-                    transform.parent.GetComponent<DistrictAIManagerScript>().CallAll();
+                    DistrictAIManager.GetComponent<DistrictAIManagerScript>().CallAll();
                     for (int i = 0; i < Projectile.GetComponent<ProjectileScript>().shotCount; i++)
                     {
                         Shoot();
@@ -620,7 +628,7 @@ public class AIBase : MonoBehaviour
                     aiState = AIState.suspicious;
                     transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(9).gameObject.SetActive(false);
                     transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(8).gameObject.SetActive(true);
-                    transform.parent.GetComponent<DistrictAIManagerScript>().CallAllSus();
+                    DistrictAIManager.GetComponent<DistrictAIManagerScript>().CallAllSus();
                 }
                 
             }
@@ -655,7 +663,7 @@ public class AIBase : MonoBehaviour
                 {
                     Shoot();
                 }
-                transform.parent.GetComponent<DistrictAIManagerScript>().CallAll();
+                DistrictAIManager.GetComponent<DistrictAIManagerScript>().CallAll();
             }
         }
         
