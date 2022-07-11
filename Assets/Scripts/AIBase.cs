@@ -366,10 +366,7 @@ public class AIBase : MonoBehaviour
             StartCoroutine("SquishOnLand");
             if (GroundCheck.collider.gameObject.tag == "Platform")
             {
-                if (GroundCheck.collider.gameObject.transform.parent.GetComponent<ElevatorScript>().ropeCut == true)
-                {
-                    //velocity.y = GroundCheck.collider.gameObject.GetComponent<Rigidbody2D>().velocity.y - 13;
-                }
+                rb2d.velocity = rb2d.velocity + GroundCheck.collider.gameObject.GetComponent<Rigidbody2D>().velocity * Time.fixedDeltaTime;
                 onPlatform = true;
             }
             else
