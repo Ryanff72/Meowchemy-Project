@@ -729,7 +729,7 @@ MonoBehaviour:
   TeleportSmoke: {fileID: 3366656320179566880, guid: 88528d444f3d1b04fae44f30f241bb86, type: 3}
   crushEffect: {fileID: 7770353964708222089, guid: 46ef6a432cf9aef45a55d80c4ddd7fee, type: 3}
   SoundCreator: {fileID: 3607655030373278906, guid: b3ae48bc208f308409fb3309c4557e46, type: 3}
-  CallFriendsSound: {fileID: 8300000, guid: 74bfaed7160497e4aa233fe321460702, type: 3}
+  CallFriendsSound: {fileID: 8300000, guid: 37f69f3625ca9f14f9d121a1c0aad452, type: 3}
   leftLimit: -12.5
   rightLimit: 0
   breakTime: 4
