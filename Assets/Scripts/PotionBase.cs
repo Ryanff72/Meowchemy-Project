@@ -142,7 +142,6 @@ public class PotionBase : MonoBehaviour
                 }
             }
         }
-        player = GameObject.Find("Player");
         if (sendToFunctionCount == 0)
         {
             sendToFunctionCount++;
