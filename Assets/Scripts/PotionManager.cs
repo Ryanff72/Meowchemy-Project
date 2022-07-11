@@ -25,7 +25,7 @@ public class PotionManager : MonoBehaviour
     public GameObject player;
 [Header("Points")]
     public GameObject point;
-    int lastPoint=50;
+    int lastPoint=15;
 
     GameObject[] points;
     public GameObject GunFX;
@@ -39,10 +39,11 @@ public class PotionManager : MonoBehaviour
         sms = GameObject.Find("SoundManager").GetComponent<SoundManagerScript>();
         heldPotionSize = transform.GetChild(0).transform.localScale;
         points = new GameObject[numberOfPoints];
-        for (int i  = 0; i< numberOfPoints; i++)
+        for (int i = 0; i< numberOfPoints; i++)
         {
-            points[i] = Instantiate(point, transform.position, Quaternion.identity);
-            points[i].GetComponent<SpriteRenderer>().enabled = false;
+            points[i] = Instantiate(point, new Vector3(transform.position.x, transform.position.y+2,0), Quaternion.identity);
+            points[i].transform.localScale = new Vector3(0.2f-(i*0.005f), 0.2f - (i * 0.005f), 0);
+            //points[i].GetComponent<SpriteRenderer>().enabled = false;
         }
         //updats # of potions
         for (int i = 0; i < Potions.Length; i++)
@@ -83,7 +84,7 @@ public class PotionManager : MonoBehaviour
             //decides where the players hand is
             transform.position = leftHand.transform.position + new Vector3(0, 0.3f, 0);
             //makes the player be able to scroll through potions
-            if (Input.GetAxis("Mouse ScrollWheel") > 0f) // forwards
+            if (Input.GetAxis("Mouse ScrollWheel") < 0f) // forwards
             {
                 if (equippedPotionIndex == Potions.Length - 1)
                 {
@@ -108,7 +109,7 @@ public class PotionManager : MonoBehaviour
                 transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Potions[equippedPotionIndex].transform.GetChild(0).GetComponent<SpriteRenderer>().sprite;
                 hotBar.transform.GetChild(equippedPotionIndex).transform.GetChild(4).GetComponent<SpriteRenderer>().enabled = true;
             }
-            else if (Input.GetAxis("Mouse ScrollWheel") < 0f) // backwards
+            else if (Input.GetAxis("Mouse ScrollWheel") > 0f) // backwards
             {
                 if (equippedPotionIndex == 0)
                 {
@@ -149,7 +150,6 @@ public class PotionManager : MonoBehaviour
             if (distanceToMouse > 10 || distanceToMouse == 0)
             {
                 throwForce = maxThrowForce;
-                numberOfPoints = 50;
             }
             else
             {
@@ -160,34 +160,31 @@ public class PotionManager : MonoBehaviour
             //handles if the line shows for aiming or not
             if (Input.GetButton("Aim"))
             {
+                player.GetComponent<PlayerController>().canMoveLeft = false;
+                player.GetComponent<PlayerController>().canMoveRight = false;
                 for (int i = 0; i < numberOfPoints; i++)
                 {
+                    
                     if (i != numberOfPoints-1)
                     {
-                        RaycastHit2D GroundCheckForPoints = Physics2D.Linecast(points[i].transform.position, points[i+1].transform.position, 1 << LayerMask.NameToLayer("Ground"));
-                        RaycastHit2D ObjectCheckForPoints = Physics2D.Linecast(points[i].transform.position, points[i+1].transform.position, 1 << LayerMask.NameToLayer("Pickup"));
-                        RaycastHit2D EnemyCheckForPoints = Physics2D.Linecast(points[i].transform.position, points[i+1].transform.position, 1 << LayerMask.NameToLayer("Enemy"));
-                        RaycastHit2D DeadEnemyCheckForPoints = Physics2D.Linecast(points[i].transform.position, points[i+1].transform.position, 1 << LayerMask.NameToLayer("DeadEnemy"));
-                        if (GroundCheckForPoints.collider != null || ObjectCheckForPoints.collider != null || EnemyCheckForPoints.collider != null || DeadEnemyCheckForPoints.collider != null)
+                        if (Physics2D.Linecast(points[i].transform.position, points[i + 1].transform.position, (1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("Pickup") | 1 << LayerMask.NameToLayer("Enemy") | 1 << LayerMask.NameToLayer("DeadEnemy") | 1 << LayerMask.NameToLayer("Lever"))))
                         {
-                            points[i].GetComponent<SpriteRenderer>().enabled = false;
+                            //points[i].GetComponent<SpriteRenderer>().enabled = false;
                             for (int o = i; o < (numberOfPoints); o++)
                             {
                                 points[o].GetComponent<SpriteRenderer>().enabled = false;
                             }
                             lastPoint = i;
                         }
-                        else
+                        else if (i == numberOfPoints - 2)
                         {
-                            if (i < lastPoint)
-                            {
-                                points[i].GetComponent<SpriteRenderer>().enabled = true;
-                            }
-
+                            lastPoint = numberOfPoints;
+                        }
+                        else if (i <= lastPoint)
+                        {
+                            points[i].GetComponent<SpriteRenderer>().enabled = true;
                         }
                     }
-                    
-                    
                     if (i == numberOfPoints)
                     {
                         lastPoint = numberOfPoints;
@@ -195,12 +192,13 @@ public class PotionManager : MonoBehaviour
 
                 }
             }
-            if (Input.GetButtonUp("Aim"))
+            else
             {
                 for (int i = 0; i < numberOfPoints; i++)
                 {
                     points[i].GetComponent<SpriteRenderer>().enabled = false;
                 }
+
             }
 
             if (Input.GetButtonDown("Throw")) //&& Input.GetButton("Aim"))
@@ -214,7 +212,7 @@ public class PotionManager : MonoBehaviour
                 points[i].transform.position = PointPosition(i * spaceBetweenPoints);
             }
 
-            for (int i = 0; i < 50; i++)
+            for (int i = 0; i < numberOfPoints; i++)
             {
                 if (i >= numberOfPoints)
                 {

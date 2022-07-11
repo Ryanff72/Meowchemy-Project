@@ -24,6 +24,9 @@ public class GunPickupScript : MonoBehaviour
     }
     private void OnTriggerExit2D(Collider2D collision)
     {
-        player.GetComponent<PlayerController>().canPickUpWeapon = false;
+        if (collision.gameObject == player)
+        {
+            player.GetComponent<PlayerController>().canPickUpWeapon = false;
+        }
     }
 }

@@ -66,10 +66,15 @@ public class DistrictAIManagerScript : MonoBehaviour
         {
             if (Troops[i].GetComponent<AIBase>().aiState != AIBase.AIState.dead)
             {
-                Troops[i].GetComponent<AIBase>().currentSuspicion = Troops[i].GetComponent<AIBase>().suspicionTriggerLevel / 2;
+                HasCalled = false;
+                Troops[i].GetComponent<AIBase>().currentSuspicion = (Troops[i].GetComponent<AIBase>().suspicionTriggerLevel / 2)+1;
                 Troops[i].GetComponent<AIBase>().aiState = AIBase.AIState.suspicious;
+                Troops[i].GetComponent<AIBase>().hasCalledFriendsSus = true;
+                Troops[i].GetComponent<AIBase>().hasCalledFriends = false;
                 Troops[i].GetComponent<AIBase>().steadfast = false;
+                Troops[i].GetComponent<AIBase>().hasSetAggro = false;
                 StartCoroutine(Troops[i].GetComponent<AIBase>().Worried());
+                Troops[i].GetComponent<AIBase>().anim.SetBool("IsRunning", false);
                 Troops[i].transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(9).gameObject.SetActive(false);
                 Troops[i].transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(8).gameObject.SetActive(true);
                 Troops[i].transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(3).gameObject.SetActive(false);

@@ -72,7 +72,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 12
-  m_Sprite: {fileID: 21300000, guid: 1e1371cd60a5a8148a142553660682f7, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 56187c9cf32d46946b9c6539049b9c36, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -114,8 +114,8 @@ GameObject:
   - component: {fileID: 990761928933192955}
   - component: {fileID: 3935878532020312770}
   m_Layer: 8
-  m_Name: SoundPotion
-  m_TagString: Untagged
+  m_Name: TeleportPotion
+  m_TagString: Potion
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -150,15 +150,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   velocity: {x: 0, y: 0}
   gravity: 2
-  HitFX: {fileID: 8967834529266873160, guid: e25e86649c129dc46b2374dbca519712, type: 3}
-  soundRadius: 20
+  HitFX: {fileID: 4098662540607346225, guid: 925e6b89bb3c9ee4f96ce3932e88fe99, type: 3}
+  soundRadius: 10
   splashRadius: 0
   distanceToEnemies: []
+  distanceToObjects: []
   distanceToPlayer: 0
   enemies: []
+  objects: []
+  SoundCreator: {fileID: 3607655030373278906, guid: b3ae48bc208f308409fb3309c4557e46, type: 3}
+  PotionBreakSound: {fileID: 8300000, guid: cb9ddaae9ac532846b2e8ad9e0b9ff6a, type: 3}
+  hasCollisionDirectionCheck: 1
   enemiesWithinSplash: []
-  enemiesWithinSound: []
-  potionName: SoundPotion
+  objectsWithinSplash: []
+  potionName: TeleportPotion
+  hitDir: 
 --- !u!50 &683338435840701458
 Rigidbody2D:
   serializedVersion: 4
@@ -208,7 +214,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70a49981231b8c64092f68d6aa3ec8ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lifetime: 5
+  lifetime: 20
   triggered: 0
 --- !u!114 &3935878532020312770
 MonoBehaviour:
@@ -222,6 +228,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c1b6d8c3df841e429bfa182063acc14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TeleportSmoke: {fileID: 3366656320179566880, guid: 88528d444f3d1b04fae44f30f241bb86, type: 3}
 --- !u!1 &4044679873923189566
 GameObject:
   m_ObjectHideFlags: 0
@@ -235,7 +242,7 @@ GameObject:
   - component: {fileID: 2095245606547640439}
   m_Layer: 8
   m_Name: Particle System
-  m_TagString: Untagged
+  m_TagString: Potion
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

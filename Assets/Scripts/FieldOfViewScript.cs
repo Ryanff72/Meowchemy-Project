@@ -26,7 +26,7 @@ public class FieldOfViewScript : MonoBehaviour
         origin = transform.position;
         startingPos = transform.position;
     }
-
+    //update
     private void LateUpdate()
     {
         if (transform.parent.GetComponent<AIBase>().aiState != AIBase.AIState.dead)// && transform.parent.GetComponent<AIBase>().aiState != AIBase.AIState.aggro)

@@ -6,7 +6,9 @@ TagManager:
   tags:
   - Enemy
   - Platform
-  - ObjectPickup
+  - Object
+  - Potion
+  - Lever
   layers:
   - Default
   - TransparentFX
@@ -21,7 +23,7 @@ TagManager:
   - DeadEnemy
   - PotionGroundCollisionHelper
   - Pickup
-  - 
+  - Lever
   - 
   - 
   - 

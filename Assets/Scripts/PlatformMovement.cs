@@ -49,21 +49,4 @@ public class PlatformMovement : MonoBehaviour
         }
     }
 
-
-    //code for making the player stay on top
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.collider.gameObject.layer == 3)
-        {
-            collision.collider.gameObject.transform.SetParent(gameObject.transform);
-        }
-    }
-
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.collider.gameObject.layer == 3)
-        {
-            collision.collider.gameObject.transform.SetParent(null);
-        }
-    }
 }

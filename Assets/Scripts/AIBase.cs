@@ -21,6 +21,10 @@ public class AIBase : MonoBehaviour
     public GameObject gunTip;
     public GameObject DogGunPickup;
     public GameObject GunFX;
+    public GameObject TeleportSmoke;
+    public GameObject crushEffect;
+    [SerializeField] GameObject SoundCreator;
+    [SerializeField] AudioClip CallFriendsSound;
 
     [Header("PatrolSettings")]
     public float leftLimit;
@@ -41,7 +45,7 @@ public class AIBase : MonoBehaviour
     public float aggroSpeed;
     private Rigidbody2D rb2d;
     [SerializeField] bool grounded;
-    bool hasSetAggro = false;
+    public bool hasSetAggro = false;
     public Vector2 JumpTimeRange;
     public Vector2 JumpHeightRange;
     public Vector2 ShotFireTimeRange;
@@ -57,6 +61,8 @@ public class AIBase : MonoBehaviour
     private bool hasSpawnedLandingFX = false;
     private bool nearGrounded = false; // workaround for odd gravity and death stuff
     public bool steadfast;
+    bool crushed = false;
+    [SerializeField] bool onPlatform;
     public Animator anim;
     public Animator emoAnim;
     [SerializeField] FieldOfViewScript fovScript;
@@ -70,12 +76,14 @@ public class AIBase : MonoBehaviour
     public bool killedByOtherAI;
     public string isPaused = "unassigned"; // for suspicion state
     bool velHasDiminished = false;//to help the bouncing after death
-    bool hasCalledFriends = false; //helps to limit how many times frieds are called
-    bool hasCalledFriendsSus = false;
+    public bool hasCalledFriends = false; //helps to limit how many times frieds are called
+    public bool hasCalledFriendsSus = false;
     bool hasDroppedGun;
+    bool hasdied; // to keep the guy from bein crushed
 
     void Start()
     {
+        SoundCreator = Instantiate(SoundCreator, transform);
         rb2d = GetComponent<Rigidbody2D>();
         jumpTimer = JumpTimeRange.y;
         shotTimer = ShotFireTimeRange.y;
@@ -87,20 +95,24 @@ public class AIBase : MonoBehaviour
         {
             case AIState.idle:
                 hasSetAggro = false;
+                hasdied = false;
                 break;
             case AIState.boundedPatrol:
                 speed = 6f;
                 hasSetAggro = false;
+                hasdied = false;
                 Patrol();
                 break;
             case AIState.suspicious:
                 speed = 4f;
                 hasSetAggro = false;
+                hasdied = false;
                 StartCoroutine("Suspicious");
                 break;
             case AIState.aggro:
                 speed = aggroSpeed;
                 setAggro();
+                hasdied = false;
                 hasSetAggro = true;
                 Aggro();
                 break;
@@ -151,7 +163,7 @@ public class AIBase : MonoBehaviour
         {
             velocity.x = -speed;
         }
-        if (Mathf.Abs(transform.position.x - Player.transform.position.x) > 30 && Mathf.Abs(transform.position.x - Player.transform.position.x) < 35 && shotTimer < 0.1f)
+        if (Mathf.Abs(transform.position.x - Player.transform.position.x) > 40 && Mathf.Abs(transform.position.x - Player.transform.position.x) < 40 && shotTimer < 0.1f)
         {
             if (transform.position.x > Player.transform.position.x)
             {
@@ -170,11 +182,27 @@ public class AIBase : MonoBehaviour
         if (shotTimer <= 0 && -1.5f < (transform.position.y-Player.transform.position.y) && (transform.position.y - Player.transform.position.y) < 1.5f )
         {
             shotTimer = Random.Range(ShotFireTimeRange.x, ShotFireTimeRange.y);
+            
             for (int i = 0; i < Projectile.GetComponent<ProjectileScript>().shotCount; i++)
             {
                 Shoot();
             } 
         }       
+        else if (shotTimer <= 0)
+        {
+            shotTimer = Random.Range(ShotFireTimeRange.x, ShotFireTimeRange.y);
+            if (Random.Range(0, 100) > 70)
+            {
+                if (transform.position.x > Player.transform.position.x)
+                {
+                    velocity.x = -speed;
+                }
+                else if (transform.position.x < Player.transform.position.x)
+                {
+                    velocity.x = speed;
+                }
+            }
+        }
         jumpTimer -= Time.deltaTime;
         if (jumpTimer <= 0)
         {
@@ -316,17 +344,38 @@ public class AIBase : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        StateMachine();
+        if (crushed == false)
+        {
+            StateMachine();
+        }
         
-            
-        
+
+
+
         //check for ground
+        RaycastHit2D CeilingCheck = Physics2D.Linecast(CCR.transform.position, CCL.transform.position, 1 << LayerMask.NameToLayer("Ground"));
+        if (CeilingCheck.collider != null)
+        {
+            velocity = new Vector2(velocity.x, Mathf.Abs(velocity.y) * -0.4f);
+        }
         RaycastHit2D GroundCheck = Physics2D.Linecast(leftGc.transform.position, rightGc.transform.position, 1<<LayerMask.NameToLayer("Ground"));
         //RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position - new Vector3(0, -0.1f,0),1<<LayerMask.NameToLayer("Ground"));
         if (GroundCheck.collider != null)// || GroundCheckRight.collider != null)
         {
             grounded = true;
             StartCoroutine("SquishOnLand");
+            if (GroundCheck.collider.gameObject.tag == "Platform")
+            {
+                if (GroundCheck.collider.gameObject.transform.parent.GetComponent<ElevatorScript>().ropeCut == true)
+                {
+                    //velocity.y = GroundCheck.collider.gameObject.GetComponent<Rigidbody2D>().velocity.y - 13;
+                }
+                onPlatform = true;
+            }
+            else
+            {
+                onPlatform = false;
+            }
             if (hasSpawnedLandingFX == false)
             {
                 hasSpawnedLandingFX = true;
@@ -349,11 +398,15 @@ public class AIBase : MonoBehaviour
         }
         else
         {
+            onPlatform = false;
             hasSquished = false;
             hasSpawnedLandingFX = false;
             grounded = false;
         }
-        
+        if (CeilingCheck.collider != null && grounded == true)
+        {
+            Crushed();
+        }
 
         if (aiState != AIState.dead)
         {
@@ -366,8 +419,8 @@ public class AIBase : MonoBehaviour
                 else
                 {
                     susIndicatorGameObject.transform.GetComponent<SpriteRenderer>().sprite = questionMarkSprite;
-                susIndicatorGameObject.transform.localPosition = Vector3.Lerp(susIndicatorGameObject.transform.localPosition, new Vector3(0, 0, 0), Time.deltaTime * 4f);
-                susIndicatorGameObject.transform.localScale = new Vector3(currentSuspicion / 200, currentSuspicion / 200, 1);
+                    susIndicatorGameObject.transform.localPosition = Vector3.Lerp(susIndicatorGameObject.transform.localPosition, new Vector3(0, 0, 0), Time.deltaTime * 4f);
+                    susIndicatorGameObject.transform.localScale = new Vector3(currentSuspicion / 200, currentSuspicion / 200, 1);
                     susIndicatorGameObject.transform.localPosition = new Vector2(0, 0f + (currentSuspicion / 200));
                 }
         }
@@ -470,7 +523,7 @@ public class AIBase : MonoBehaviour
         }
         else
         {
-            if (setyVel0 == true)
+            if (setyVel0 == true && (onPlatform == false && aiState != AIState.dead))
             {
                 velocity.y = 0;
                 setyVel0 = false;
@@ -497,12 +550,7 @@ public class AIBase : MonoBehaviour
             emoAnim.transform.parent.gameObject.transform.localPosition = new Vector3(-0.83f, 2, 1);
         }
         //makes them hit their head on the ceiling
-        RaycastHit2D CeilingCheckRight = Physics2D.Linecast(CCR.transform.position, CCR.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D CeilingCheckLeft = Physics2D.Linecast(CCL.transform.position, CCL.transform.position - new Vector3(0, 0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        if (CeilingCheckLeft.collider != null || CeilingCheckRight.collider != null)
-        {
-            velocity = new Vector2(velocity.x, Mathf.Abs(velocity.y) * -0.4f);
-        }
+        
     }
 
     public void setAggro()
@@ -537,6 +585,12 @@ public class AIBase : MonoBehaviour
         if (hasCalledFriendsSus == false && aiState != AIState.dead)
         {
             hasCalledFriendsSus = true;
+            if (hasCalledFriends == false)
+            {
+                
+                SoundCreator.transform.position = transform.position;
+                SoundCreator.GetComponent<AudioProximity>().PlaySound(CallFriendsSound, 80f, 0.9f);
+            }
             anim.SetBool("IsWalking", false);
             anim.SetBool("IsCalling", true);
             anim.SetBool("IsRunning", false);
@@ -545,6 +599,7 @@ public class AIBase : MonoBehaviour
             aiState = AIState.idle;
             transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(9).gameObject.SetActive(true);
             transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(8).gameObject.SetActive(false);
+
             yield return new WaitForSeconds(3);
             canMove = true;
             anim.SetBool("IsCalling", false);  
@@ -581,6 +636,11 @@ public class AIBase : MonoBehaviour
         if (hasCalledFriends == false && aiState != AIState.dead)
         {
             hasCalledFriends = true;
+            if (hasCalledFriendsSus == true)
+            {
+                SoundCreator.transform.position = transform.position;
+                SoundCreator.GetComponent<AudioProximity>().PlaySound(CallFriendsSound, 80f, 0.9f);
+            }
             anim.SetBool("IsWalking", false);
             anim.SetBool("IsCalling", true);
             velocity.x = 0;
@@ -589,6 +649,7 @@ public class AIBase : MonoBehaviour
             transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(8).gameObject.SetActive(false);
             canMove = false;
             yield return new WaitForSeconds(3f);
+            anim.SetBool("IsCalling", false);
             canMove = true;
 
             if (aiState != AIState.dead)// && hasCalledFriends == false)
@@ -607,6 +668,20 @@ public class AIBase : MonoBehaviour
     private void DeathProcedure()
     {
         gameObject.layer = 10;
+        if (hasdied == false)
+        {
+            hasdied = true;
+            RaycastHit2D CheckRight = Physics2D.Linecast(transform.position, transform.position + new Vector3(0, 2f, 0), 1 << LayerMask.NameToLayer("Ground"));
+            RaycastHit2D CheckLeft = Physics2D.Linecast(transform.position, transform.position + new Vector3(0, -2f, 0), 1 << LayerMask.NameToLayer("Ground"));
+            if (CheckLeft.collider != null)
+            {
+                transform.position = transform.position + new Vector3(-1.5f, 0, 0);
+            }
+            else if (CheckRight.collider != null)
+            {
+                transform.position = transform.position + new Vector3(1.5f, 0, 0);
+            }
+        }
         transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(9).gameObject.SetActive(false);
         transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(8).gameObject.SetActive(false);
         transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(3).gameObject.SetActive(false);
@@ -757,13 +832,27 @@ public class AIBase : MonoBehaviour
             }
             if (velocity.y < 3 && velocity.y < 0.5f && aiState != AIBase.AIState.aggro)
             {
-                velocity.y = 6;
+                if (onPlatform == false)
+                {
+                    velocity.y = 6;
+                }
+                else
+                {
+                    onPlatform = false;
+                    velocity.y = 6;
+                }
             }
             currentSuspicion += 31;
             StartCoroutine("Surprised");
             //enemiesInSound[i].gameObject.GetComponent<AIBase>().aiState = AIBase.AIState.suspicious;
 
         }
+    }
+
+    public void Teleport(Vector3 location)
+    {
+        transform.position = location;
+        Instantiate(TeleportSmoke, location + new Vector3(0, -0.7f, 0), Quaternion.Euler(-90, 0, 0));
     }
 
     private void Shoot()
@@ -783,5 +872,20 @@ public class AIBase : MonoBehaviour
             GameObject newFX = Instantiate(GunFX, gunTip.transform.position, Quaternion.Euler(-90, 180, 0));
             newFX.transform.parent = transform;
         }
+    }
+
+    public void Crushed()
+    {
+        if(crushed == false)
+        {
+            crushed = true;
+            GetComponent<BoxCollider2D>().enabled = false;
+            aiState = AIState.dead;
+            rb2d.bodyType = RigidbodyType2D.Static;
+            transform.GetChild(1).gameObject.SetActive(false);
+            Instantiate(crushEffect, transform.position, Quaternion.identity);
+        }
+
+        
     }
 }

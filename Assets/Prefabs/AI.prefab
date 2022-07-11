@@ -301,7 +301,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2097153
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 5a4f3b47abd3f014b8dbab507ac6ed20, type: 2}
@@ -324,7 +324,7 @@ MeshRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 6
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1101437760
 GameObject:
@@ -726,6 +726,10 @@ MonoBehaviour:
   gunTip: {fileID: 47660512163816479}
   DogGunPickup: {fileID: 3766180176046099687, guid: 819522febb1bd734496d99e4f9af4108, type: 3}
   GunFX: {fileID: 1107779523890291858, guid: dbbe0e29b4055ef4d83be690a0271bb9, type: 3}
+  TeleportSmoke: {fileID: 3366656320179566880, guid: 88528d444f3d1b04fae44f30f241bb86, type: 3}
+  crushEffect: {fileID: 7770353964708222089, guid: 46ef6a432cf9aef45a55d80c4ddd7fee, type: 3}
+  SoundCreator: {fileID: 3607655030373278906, guid: b3ae48bc208f308409fb3309c4557e46, type: 3}
+  CallFriendsSound: {fileID: 8300000, guid: 74bfaed7160497e4aa233fe321460702, type: 3}
   leftLimit: -12.5
   rightLimit: 0
   breakTime: 4
@@ -738,7 +742,8 @@ MonoBehaviour:
   speed: 6
   aggroSpeed: 14
   grounded: 0
-  JumpTimeRange: {x: 0.5, y: 3}
+  hasSetAggro: 0
+  JumpTimeRange: {x: 0.3, y: 2.8}
   JumpHeightRange: {x: 25, y: 35}
   ShotFireTimeRange: {x: 0.2, y: 1.7}
   shotPos: {fileID: 8081819444018542414}
@@ -746,6 +751,7 @@ MonoBehaviour:
   currentSuspicion: 0
   suspicionTriggerLevel: 110
   steadfast: 0
+  onPlatform: 0
   anim: {fileID: 8081819445442859002}
   emoAnim: {fileID: 1320895185}
   fovScript: {fileID: 936037687}
@@ -754,6 +760,8 @@ MonoBehaviour:
   questionMarkSprite: {fileID: 21300000, guid: 9b4c128d9e4b1604ab9ecd2d55aec299, type: 3}
   killedByOtherAI: 0
   isPaused: unassigned
+  hasCalledFriends: 0
+  hasCalledFriendsSus: 0
 --- !u!61 &8081819444018542400
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -792,7 +800,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 0.0001
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 0
@@ -1035,7 +1043,7 @@ Animator:
   m_Enabled: 1
   m_Avatar: {fileID: 0}
   m_Controller: {fileID: 9100000, guid: 4745cc803b6508b46bfd836bbfafc5be, type: 2}
-  m_CullingMode: 0
+  m_CullingMode: 2
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0

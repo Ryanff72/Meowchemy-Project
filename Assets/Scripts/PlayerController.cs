@@ -45,6 +45,8 @@ public class PlayerController : MonoBehaviour
     public GameObject rightPartGun;
     public GameObject dogGun;
     public TextMeshProUGUI ammoText;
+    public GameObject crushEffect;
+    private GameObject InstantiatedWeapon;
     [SerializeField] private GameObject WeaponPickup;
     
     
@@ -63,11 +65,11 @@ public class PlayerController : MonoBehaviour
     public bool canMoveLeft;
     public bool canMoveRight;
     private bool setyvelzero; //checks if the y velocity is zero when the player is grounded. if it is not, it sets it to be.
-    private bool hasSpawnedDashFX = false;
     private bool hasSquished = false;
     private bool hasSpawnedLandingFX;
     public bool canPickUpWeapon;
     public bool hasWeapon;
+    bool wasOnPlatform;
 
     [Header("Floats")]
     private float edgeJumpTimer; //the time that the player can jump after leaving an edge
@@ -75,7 +77,6 @@ public class PlayerController : MonoBehaviour
 
     [Header("Strings")]
     public string gotToAirBy = "jumping";
-    private string fatFallDir = "none";
 
     [Header("Misc")]
     private Animator anim;
@@ -83,7 +84,7 @@ public class PlayerController : MonoBehaviour
     public PlayerState ps;
     public Transform respawnPos;
     private bool velHasDiminished;
-    private bool enemyInKillingPosition = false;
+    //private bool enemyInKillingPosition = false;
     public int ammoCount;
 
     void Start()
@@ -166,17 +167,39 @@ public class PlayerController : MonoBehaviour
         if (GroundCheck.collider != null)
         {
             grounded = true;
+            
             if (hasSpawnedLandingFX == false)
             {
                 hasSpawnedLandingFX = true;
                 Instantiate(landingSmoke, transform.GetChild(0).transform.position + new Vector3(0,-0.6f,0), Quaternion.Euler(-90, 0, 0));
                 
             }
+            if (GroundCheck.collider.gameObject.tag == "Platform")
+            {
+                transform.SetParent(GroundCheck.collider.gameObject.transform);
+                wasOnPlatform = true;
+            }
+            else
+            {
+                transform.parent = null;
+                wasOnPlatform = false;
+            }
             StartCoroutine("SquishOnLand");//a coroutine that makes a squish animation
         }
         else
         {
+            transform.SetParent(null);
             hasSpawnedLandingFX = false;
+            if (wasOnPlatform == true)
+            {
+                wasOnPlatform = false;
+                if (velocity.y < 0.1)
+                {
+                    velocity.y = 0;
+                }
+                
+
+            }
             grounded = false;
             hasSquished = false;
         }
@@ -200,7 +223,21 @@ public class PlayerController : MonoBehaviour
         else if (hasWeapon == true && Input.GetButtonDown("Interact"))
         {
             anim.SetBool("HasGun", false);
-            GameObject InstantiatedWeapon = Instantiate(WeaponPickup, transform.position, Quaternion.identity);
+            RaycastHit2D CheckRight = Physics2D.Linecast(transform.position, transform.position + new Vector3(0, 1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+            RaycastHit2D CheckLeft = Physics2D.Linecast(transform.position, transform.position + new Vector3(0, -1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+            if (CheckLeft.collider != null)
+            {
+                InstantiatedWeapon = Instantiate(WeaponPickup, transform.position + new Vector3(-1, 0, 0), Quaternion.identity);
+            }
+            else if (CheckRight.collider != null)
+            {
+                InstantiatedWeapon = Instantiate(WeaponPickup, transform.position + new Vector3(1, 0, 0), Quaternion.identity);
+            }
+            else
+            {
+                InstantiatedWeapon = Instantiate(WeaponPickup, transform.position, Quaternion.identity);
+            }
+            
             InstantiatedWeapon.transform.GetChild(0).GetComponent<GunPickupScript>().ammo = ammoCount;
             InstantiatedWeapon.GetComponent<SimpleBoxObjectPhysics>().velocity = velocity;
             maxSpeed = savedMaxSpeed;
@@ -268,70 +305,65 @@ public class PlayerController : MonoBehaviour
         {
             velocity = new Vector2(velocity.x, Mathf.Abs(velocity.y) * -0.7f);
         }
+        if (CeilingCheck.collider != null && grounded == true)
+        {
+            Crushed();
+        }
         //check for ground
         
-            if (grounded == true)
+        if (grounded == true)
+        {
+            if (gotToAirBy == "jumping" && transform.parent == null)
             {
-                if (earlyJumpTriggered == true)
-                {
-                    earlyJumpTimer = 0.0f;
-                    Invoke("Jump", 0.01f);
-                    gotToAirBy = "jumping";
-                }
-                edgeJumpTimer = 0.0f;
-                gravity = gravityJump;
-                grounded = true;
-                anim.SetBool("Jump", false);
-                earlyJumpTriggered = false;
-                //this bit of code is to ensure that when the player leaves the ground via edge the code does not think that the player jumped.
-                if (gotToAirBy == "jumping")
-                {
-                    gotToAirBy = "falling";
-                }
-                limitSpeed = true;
-                //reset y vel
-                if (setyvelzero == false && rb2d.velocity.y <= 0.5f)
-                {
-                    velocity.y = 0;
-                    setyvelzero = true;
-                }
-                anim.SetBool("JumpDown", false);
-                //if (GroundCheckLeft.collider.gameObject.tag != null || GroundCheckRight.collider.gameObject.tag != null)
-                //{
-                //    if (GroundCheckLeft.collider.gameObject.tag == "Platform")
-                //    {
-                //        transform.SetParent(GroundCheckLeft.collider.transform);
-                //    }
-                //    if (GroundCheckRight.collider.gameObject.tag == "Platform")
-                //    {
-                //        transform.SetParent(GroundCheckLeft.collider.transform);
-                //    }
-                //}
-                //else
-                //{
-                //    transform.SetParent(null);
-                //}
+                gotToAirBy = "falling";
+            }
+            if (earlyJumpTriggered == true)
+            {
+                earlyJumpTimer = 0.0f;
+                Invoke("Jump", 0.01f);
+                gotToAirBy = "jumping";
+            }
+            edgeJumpTimer = 0.0f;
+            gravity = gravityJump;
+            grounded = true;
+            
+            anim.SetBool("Jump", false);
+            earlyJumpTriggered = false;
+            limitSpeed = true;
+            //reset y vel
+            if (setyvelzero == false && rb2d.velocity.y <= 0.5f && transform.parent == null)
+            {
+                velocity.y = 0;
+                setyvelzero = true;
+            }
+            else if (transform.parent != null)
+            {
+               // velocity.y = rb2d.velocity.y;
+            }
+            anim.SetBool("JumpDown", false);
+            //this bit of code is to ensure that when the player leaves the ground via edge the code does not think that the player jumped.
+            
+        }
+        else
+        {
+            if (setyvelzero == true)
+            {
+                setyvelzero = false;
+            }
+             //gravity
+            anim.SetBool("Jump", true); 
+            if (velocity.y < 0)
+            {
+                anim.SetBool("JumpDown", true);
             }
             else
             {
-                if (setyvelzero == true)
-                {
-                    setyvelzero = false;
-                }
-                 //gravity
-                anim.SetBool("Jump", true); 
-                if (velocity.y < 0)
-                {
-                    anim.SetBool("JumpDown", true);
-                }
-                else
-                {
-                    anim.SetBool("JumpDown", false);
-                }
-                velocity.y += gravity * Time.deltaTime;
-                edgeJumpTimer += Time.deltaTime;
-                grounded = false;
+                anim.SetBool("JumpDown", false);
             }
+            velocity.y += gravity * Time.deltaTime;
+            edgeJumpTimer += Time.deltaTime;
+            grounded = false;
+        }
 
         //movement
         rb2d.velocity = velocity;
@@ -437,7 +469,7 @@ public class PlayerController : MonoBehaviour
             dogGun.gameObject.SetActive(false);
             hasWeapon = false;
             GameObject droppedWeapon = Instantiate(WeaponPickup, transform.position, Quaternion.identity);
-            droppedWeapon.transform.GetChild(0).GetComponent<SimpleBoxObjectPhysics>().velocity = velocity * 0.7f;
+            droppedWeapon.transform.GetComponent<SimpleBoxObjectPhysics>().velocity = velocity * 0.7f;
         }
         transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).gameObject.GetComponent<SpriteRenderer>().enabled = false;
         GetComponent<BoxCollider2D>().size = new Vector2(1.5f, 1);
@@ -549,7 +581,7 @@ public class PlayerController : MonoBehaviour
         
         
         //shrinks the upward force when releasing space (causes jumps to vary in height)
-        if (Input.GetButtonUp("Jump") || Input.GetKeyUp(Controls.JumpButtonName) || rb2d.velocity.y <= 0) // && rb2d.velocity.y > 0)
+        if (Input.GetButtonUp("Jump") || Input.GetKeyUp(Controls.JumpButtonName) || (rb2d.velocity.y <= 0 && edgeJumpTimer>0.1f)) // && rb2d.velocity.y > 0)
         {
             gravity = gravityFall;
         }
@@ -618,6 +650,13 @@ public class PlayerController : MonoBehaviour
         
     }
    
-
+    public void Crushed()
+    {
+        ps = PlayerState.dead;
+        rb2d.bodyType = RigidbodyType2D.Static;
+        transform.GetChild(1).gameObject.SetActive(false);
+        Instantiate(crushEffect, transform.position, Quaternion.identity);
+        GetComponent<BoxCollider2D>().enabled = false;
+    }
   
 }

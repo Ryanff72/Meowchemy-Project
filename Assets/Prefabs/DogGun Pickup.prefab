@@ -292,7 +292,7 @@ GameObject:
   - component: {fileID: 6395407150253720880}
   m_Layer: 12
   m_Name: DogGun Pickup
-  m_TagString: ObjectPickup
+  m_TagString: Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -351,7 +351,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 0.0001
   m_LinearDrag: 0
   m_AngularDrag: 0
   m_GravityScale: 0
@@ -373,6 +373,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   velocity: {x: 0, y: 0}
+  crushable: 1
   gravity: -40
   leftGc: {fileID: 1989360792}
   rightGc: {fileID: 646839335}
@@ -383,6 +384,7 @@ MonoBehaviour:
   CCR: {fileID: 791664686}
   CCL: {fileID: 196851600}
   landingSmoke: {fileID: 4098662540607346225, guid: 925e6b89bb3c9ee4f96ce3932e88fe99, type: 3}
+  breakSmoke: {fileID: 1107779523890291858, guid: 0c72c44bf9f27464eba295af7ab42cb5, type: 3}
 --- !u!1 &3766180176383867076
 GameObject:
   m_ObjectHideFlags: 0

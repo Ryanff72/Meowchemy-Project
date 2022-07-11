@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1107779523890291857}
   - component: {fileID: 1107779523890291856}
   - component: {fileID: 1107779523890291859}
+  - component: {fileID: 2066038350354422833}
   m_Layer: 0
   m_Name: GunEffect
   m_TagString: Untagged
@@ -4813,3 +4814,17 @@ ParticleSystemRenderer:
   m_Mesh2: {fileID: 0}
   m_Mesh3: {fileID: 0}
   m_MaskInteraction: 0
+--- !u!114 &2066038350354422833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1107779523890291858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70a49981231b8c64092f68d6aa3ec8ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lifetime: 3
+  triggered: 1

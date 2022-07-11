@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 406715512430256519}
   - component: {fileID: 406715512430256518}
   - component: {fileID: -8927680394035013334}
+  - component: {fileID: 3645608523042179337}
   m_Layer: 9
   m_Name: Projectile
   m_TagString: Untagged
@@ -68,9 +69,9 @@ CircleCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0.002051171, y: 0}
   serializedVersion: 2
-  m_Radius: 0.3
+  m_Radius: 0.44150963
 --- !u!114 &-8927680394035013334
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -87,6 +88,20 @@ MonoBehaviour:
   ProjectileSpeed: 40
   playerBullet: 0
   BulletEffect: {fileID: 1107779523890291858, guid: 0c72c44bf9f27464eba295af7ab42cb5, type: 3}
+--- !u!114 &3645608523042179337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 406715512430256515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70a49981231b8c64092f68d6aa3ec8ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lifetime: 3
+  triggered: 0
 --- !u!1 &6099953875020537177
 GameObject:
   m_ObjectHideFlags: 0
@@ -98,7 +113,7 @@ GameObject:
   - component: {fileID: 4694154037744320681}
   - component: {fileID: 1655015261302020210}
   m_Layer: 9
-  m_Name: GameObject
+  m_Name: BulletSprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

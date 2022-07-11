@@ -6,6 +6,8 @@ public class PotionFunctionScript : MonoBehaviour
 {
 
     private SoundManagerScript sms;
+    public GameObject TeleportSmoke;
+
 
     private void Start()
     {
@@ -48,12 +50,59 @@ public class PotionFunctionScript : MonoBehaviour
         }
         if (potionType == "TeleportPotion")
         {
-            
-            if (HitObject.tag == "Enemy" || HitObject.tag == "ObjectPickup")
+            if (HitObject.tag == "Object")
+            {
+                if (Physics2D.Linecast(player.transform.position, player.transform.position + new Vector3(-2, 0, 0), 1 << LayerMask.NameToLayer("Ground")))
+                {
+                    Debug.Log("1");
+                    HitObject.transform.position = player.transform.position + new Vector3(2f, 0, 0);
+                }
+                else if (Physics2D.Linecast(player.transform.position, player.transform.position + new Vector3(2, 0, 0), 1 << LayerMask.NameToLayer("Ground")))
+                {
+                    Debug.Log("2");
+                    HitObject.transform.position = player.transform.position + new Vector3(-2f, 0, 0);
+                }
+                else
+                {
+                    HitObject.transform.position = player.transform.position;
+                }
+                Instantiate(TeleportSmoke, player.transform.position - new Vector3(0, 0.2f, 0), Quaternion.identity);
+            }
+            if (HitObject.tag == "Potion")
             {
                 HitObject.transform.position = player.transform.position;
+                Instantiate(TeleportSmoke, player.transform.position - new Vector3(0, 0.2f, 0), Quaternion.identity);
             }
-            player.transform.position = HitPos;
+            if (HitObject.tag == "Enemy")
+            {
+                RaycastHit2D CheckRight = Physics2D.Linecast(player.transform.position, player.transform.position + new Vector3(1.5f,0,0), 1 << LayerMask.NameToLayer("Ground"));
+                RaycastHit2D CheckLeft = Physics2D.Linecast(player.transform.position, player.transform.position + new Vector3(-1.5f,0, 0), 1 << LayerMask.NameToLayer("Ground"));
+                if (CheckLeft.collider != null)
+                {
+                    HitObject.GetComponent<AIBase>().Teleport(player.transform.position + new Vector3(-2f, 0, 0));
+                }
+                else if (CheckRight.collider != null)
+                {
+                    HitObject.GetComponent<AIBase>().Teleport(player.transform.position + new Vector3(2f, 0, 0));
+                }
+                else
+                {
+                    HitObject.GetComponent<AIBase>().Teleport(player.transform.position);
+                }
+            }
+            if (GetComponent<PotionBase>().hitDir == "left")
+            {
+                player.transform.position = HitPos + new Vector3(3, 0, 0);
+            }
+            else if (GetComponent<PotionBase>().hitDir == "right")
+            {
+                player.transform.position = HitPos + new Vector3(-3, 0, 0);
+            }
+            else
+            {
+                player.transform.position = HitPos;
+            }
+            Instantiate(TeleportSmoke, player.transform.position - new Vector3(0,0.85f,0), Quaternion.identity);
             sms.MakeSound(soundRadius, HitPos);
         }
     }
