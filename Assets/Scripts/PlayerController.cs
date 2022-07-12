@@ -86,6 +86,7 @@ public class PlayerController : MonoBehaviour
     private bool velHasDiminished;
     //private bool enemyInKillingPosition = false;
     public int ammoCount;
+    float crushtime;
 
     void Start()
     {
@@ -223,19 +224,19 @@ public class PlayerController : MonoBehaviour
         else if (hasWeapon == true && Input.GetButtonDown("Interact"))
         {
             anim.SetBool("HasGun", false);
-            RaycastHit2D CheckRight = Physics2D.Linecast(transform.position, transform.position + new Vector3(0, 1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-            RaycastHit2D CheckLeft = Physics2D.Linecast(transform.position, transform.position + new Vector3(0, -1f, 0), 1 << LayerMask.NameToLayer("Ground"));
+            RaycastHit2D CheckRight = Physics2D.Linecast(transform.position, transform.position + new Vector3(1,0, 0), 1 << LayerMask.NameToLayer("Ground"));
+            RaycastHit2D CheckLeft = Physics2D.Linecast(transform.position, transform.position + new Vector3(-1,0, 0), 1 << LayerMask.NameToLayer("Ground"));
             if (CheckLeft.collider != null)
             {
-                InstantiatedWeapon = Instantiate(WeaponPickup, transform.position + new Vector3(-1, 0, 0), Quaternion.identity);
+                InstantiatedWeapon = Instantiate(WeaponPickup, transform.position + new Vector3(0, 1, 0), Quaternion.identity);
             }
             else if (CheckRight.collider != null)
             {
-                InstantiatedWeapon = Instantiate(WeaponPickup, transform.position + new Vector3(1, 0, 0), Quaternion.identity);
+                InstantiatedWeapon = Instantiate(WeaponPickup, transform.position + new Vector3(-1, 1, 0), Quaternion.identity);
             }
             else
             {
-                InstantiatedWeapon = Instantiate(WeaponPickup, transform.position, Quaternion.identity);
+                InstantiatedWeapon = Instantiate(WeaponPickup, transform.position + new Vector3(0, 1, 0), Quaternion.identity);
             }
             
             InstantiatedWeapon.transform.GetChild(0).GetComponent<GunPickupScript>().ammo = ammoCount;
@@ -287,15 +288,26 @@ public class PlayerController : MonoBehaviour
         {
             canMoveRight = false;
             moveright = false;
+
+            if (WallCheckRight.collider.gameObject.tag == "Platform")
+            {
+                transform.position = new Vector3(transform.position.x - 0.1f, transform.position.y, 0);
+            }
         }
         else
         {
             canMoveRight = true;
+
         }
         if (WallCheckLeft == true)
         {
             canMoveLeft = false;
             moveleft = false;
+
+            if (WallCheckLeft.collider.gameObject.tag == "Platform")
+            {
+                transform.position = new Vector3(transform.position.x + 0.1f, transform.position.y,0);
+            }
         }
         else
         {
@@ -307,7 +319,17 @@ public class PlayerController : MonoBehaviour
         }
         if (CeilingCheck.collider != null && grounded == true)
         {
-            Crushed();
+            
+            crushtime += Time.deltaTime;
+            if (crushtime > 0.04f) 
+            {
+                Crushed();
+            }
+
+        }
+        else
+        {
+            crushtime = 0;
         }
         //check for ground
         
@@ -468,7 +490,7 @@ public class PlayerController : MonoBehaviour
         {
             dogGun.gameObject.SetActive(false);
             hasWeapon = false;
-            GameObject droppedWeapon = Instantiate(WeaponPickup, transform.position, Quaternion.identity);
+            GameObject droppedWeapon = Instantiate(WeaponPickup, transform.position+new Vector3(0,1,0), Quaternion.identity);
             droppedWeapon.transform.GetComponent<SimpleBoxObjectPhysics>().velocity = velocity * 0.7f;
         }
         transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).gameObject.GetComponent<SpriteRenderer>().enabled = false;

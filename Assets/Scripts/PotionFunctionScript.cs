@@ -92,11 +92,11 @@ public class PotionFunctionScript : MonoBehaviour
             }
             if (GetComponent<PotionBase>().hitDir == "left")
             {
-                player.transform.position = HitPos + new Vector3(3, 0, 0);
+                player.transform.position = HitPos + new Vector3(1.5f, 0, 0);
             }
             else if (GetComponent<PotionBase>().hitDir == "right")
             {
-                player.transform.position = HitPos + new Vector3(-3, 0, 0);
+                player.transform.position = HitPos + new Vector3(-1.5f, 0, 0);
             }
             else
             {

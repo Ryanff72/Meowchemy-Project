@@ -153,7 +153,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 597918091}
-  - component: {fileID: 597918092}
+  - component: {fileID: 1946989770}
   m_Layer: 0
   m_Name: LeftLeg
   m_TagString: Untagged
@@ -175,7 +175,7 @@ Transform:
   m_Father: {fileID: 314926846}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &597918092
+--- !u!212 &1946989770
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -194,7 +194,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -412,7 +412,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -483,7 +483,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1169142767}
-  - component: {fileID: 1169142768}
+  - component: {fileID: 1021684706}
   m_Layer: 0
   m_Name: Tail
   m_TagString: Untagged
@@ -505,7 +505,7 @@ Transform:
   m_Father: {fileID: 1741469956}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -72.986}
---- !u!212 &1169142768
+--- !u!212 &1021684706
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -524,7 +524,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -751,7 +751,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1539999302}
-  - component: {fileID: 1539999303}
+  - component: {fileID: 1657683434}
   m_Layer: 0
   m_Name: Eyes
   m_TagString: Untagged
@@ -773,7 +773,7 @@ Transform:
   m_Father: {fileID: 1741469956}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &1539999303
+--- !u!212 &1657683434
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -792,7 +792,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -833,7 +833,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1738767859}
-  - component: {fileID: 1738767860}
+  - component: {fileID: 1384460925}
   m_Layer: 0
   m_Name: LeftHand
   m_TagString: Untagged
@@ -856,7 +856,7 @@ Transform:
   m_Father: {fileID: 1741469956}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &1738767860
+--- !u!212 &1384460925
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -875,7 +875,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -916,7 +916,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1738907034}
-  - component: {fileID: 1738907035}
+  - component: {fileID: 329680083}
   m_Layer: 0
   m_Name: RightHand
   m_TagString: Untagged
@@ -938,7 +938,7 @@ Transform:
   m_Father: {fileID: 1741469956}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &1738907035
+--- !u!212 &329680083
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -957,7 +957,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -998,7 +998,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1741469956}
-  - component: {fileID: 1741469958}
+  - component: {fileID: 717008582}
   m_Layer: 0
   m_Name: UpperBody
   m_TagString: Untagged
@@ -1024,7 +1024,7 @@ Transform:
   m_Father: {fileID: 1942177010}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &1741469958
+--- !u!212 &717008582
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1043,7 +1043,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1138,7 +1138,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1988048081}
-  - component: {fileID: 1988048082}
+  - component: {fileID: 1667715282}
   m_Layer: 0
   m_Name: RightLeg
   m_TagString: Untagged
@@ -1160,7 +1160,7 @@ Transform:
   m_Father: {fileID: 314926846}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &1988048082
+--- !u!212 &1667715282
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1179,7 +1179,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1516,7 +1516,7 @@ Rigidbody2D:
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 0
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: e927183d87d2dd245aee963d665f2e78, type: 2}
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 1
@@ -1629,7 +1629,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4844585179486842954}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.4984, y: -0.56, z: 0}
+  m_LocalPosition: {x: -0.48, y: -0.53, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4844585181108296258}
@@ -1659,7 +1659,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4844585179685699235}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.4966, y: -0.56, z: 0}
+  m_LocalPosition: {x: 0.48, y: -0.53, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4844585181108296258}
@@ -1713,10 +1713,12 @@ MonoBehaviour:
   leftHand: {fileID: 1738767858}
   maxThrowForce: 50
   gravity: 97
-  numberPotionsRemaining: 630000006300000063000000
+  numberPotionsRemaining: 6300000063000000630000006300000063000000
   Potions:
   - {fileID: 683338435840701456, guid: 37a7b428c6f94614bad43ff3e91112c4, type: 3}
   - {fileID: 683338435840701456, guid: 2e48df23518c9b244a1a3e43a9a3c6f7, type: 3}
+  - {fileID: 683338435840701456, guid: 21ecf83dd6def4243a0127ea5d3e0bd1, type: 3}
+  - {fileID: 683338435840701456, guid: 21ecf83dd6def4243a0127ea5d3e0bd1, type: 3}
   - {fileID: 683338435840701456, guid: 21ecf83dd6def4243a0127ea5d3e0bd1, type: 3}
   hotBar: {fileID: 0}
   Projectile: {fileID: 406715512430256515, guid: 0dbf7366c7c028b499544e9c863cf307, type: 3}

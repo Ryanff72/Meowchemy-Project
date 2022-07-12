@@ -23,6 +23,7 @@ public class SimpleBoxObjectPhysics : MonoBehaviour
     [SerializeField] GameObject landingSmoke;
     [SerializeField] GameObject breakSmoke;
     bool crushed;
+    float crushtime;
     // Start is called before the first frame update
     void Start()
     {
@@ -47,9 +48,25 @@ public class SimpleBoxObjectPhysics : MonoBehaviour
                 {
                     rb2d.velocity = rb2d.velocity + GroundCheck.collider.gameObject.GetComponent<Rigidbody2D>().velocity * Time.fixedDeltaTime;
                 }
+                if (GroundCheck.collider.gameObject.tag == "Platform")
+                {
+                    transform.SetParent(GroundCheck.collider.gameObject.transform);
+                }
+                else
+                {
+                    if (crushable == true)
+                    {
+                        transform.parent = null;
+                    }
+                }
+
             }
             else
             {
+                if(crushable == true)
+                {
+                    transform.parent = null;
+                }
                 hasSpawnedSmoke = false;
                 grounded = false;
             }
@@ -83,6 +100,19 @@ public class SimpleBoxObjectPhysics : MonoBehaviour
                     velocity.y = Mathf.Lerp(velocity.y, -1, Time.deltaTime * 10);
                     velocity.x = Mathf.Lerp(velocity.x, 0, Time.deltaTime * 2f);
                 }
+                if (CeilingCheck.collider != null && grounded == true)
+                {
+                    crushtime += Time.deltaTime;
+                    if (crushtime > 0.1f)
+                    {
+                        Crushed();
+                    }
+
+                }
+                else
+                {
+                    crushtime = 0;
+                }
             }
             else if (velHasDiminished == false)
             {
@@ -93,10 +123,18 @@ public class SimpleBoxObjectPhysics : MonoBehaviour
             if (WallCheckLeft.collider != null)
             {
                 velocity.x = Mathf.Abs(velocity.x);
+                if (WallCheckLeft.collider.gameObject.tag == "Platform")
+                {
+                    velocity.x += 0.1f;
+                }
             }
             if (WallCheckRight.collider != null)
             {
                 velocity.x = -Mathf.Abs(velocity.x);
+                if (WallCheckRight.collider.gameObject.tag == "Platform")
+                {
+                    velocity.x -= 0.1f;
+                }
             }
             if (CeilingCheck.collider != null)
             {

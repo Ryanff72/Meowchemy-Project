@@ -63,6 +63,7 @@ public class AIBase : MonoBehaviour
     private bool nearGrounded = false; // workaround for odd gravity and death stuff
     public bool steadfast;
     bool crushed = false;
+    float crushtime;
     [SerializeField] bool onPlatform;
     public Animator anim;
     public Animator emoAnim;
@@ -403,6 +404,7 @@ public class AIBase : MonoBehaviour
         }
         else
         {
+            transform.parent = null;
             onPlatform = false;
             hasSquished = false;
             hasSpawnedLandingFX = false;
@@ -410,7 +412,16 @@ public class AIBase : MonoBehaviour
         }
         if (CeilingCheck.collider != null && grounded == true)
         {
-            Crushed();
+            crushtime += Time.deltaTime;
+            if (crushtime > 0.04f)
+            {
+                Crushed();
+            }
+            
+        }
+        else
+        {
+            crushtime = 0;
         }
 
         if (aiState != AIState.dead)
