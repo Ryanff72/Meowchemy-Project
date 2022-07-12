@@ -26,6 +26,7 @@ public class AIBase : MonoBehaviour
     public GameObject DistrictAIManager;
     [SerializeField] GameObject SoundCreator;
     [SerializeField] AudioClip CallFriendsSound;
+    [SerializeField] AudioClip DieSound;
 
     [Header("PatrolSettings")]
     public float leftLimit;
@@ -687,6 +688,8 @@ public class AIBase : MonoBehaviour
         if (hasdied == false)
         {
             hasdied = true;
+            SoundCreator.transform.position = transform.position;
+            SoundCreator.GetComponent<AudioProximity>().PlaySound(DieSound, 80f, 0.9f);
             RaycastHit2D CheckRight = Physics2D.Linecast(transform.position, transform.position + new Vector3(0, 2f, 0), 1 << LayerMask.NameToLayer("Ground"));
             RaycastHit2D CheckLeft = Physics2D.Linecast(transform.position, transform.position + new Vector3(0, -2f, 0), 1 << LayerMask.NameToLayer("Ground"));
             if (CheckLeft.collider != null)

@@ -125,7 +125,7 @@ public class SimpleBoxObjectPhysics : MonoBehaviour
                 velocity.x = Mathf.Abs(velocity.x);
                 if (WallCheckLeft.collider.gameObject.tag == "Platform")
                 {
-                    velocity.x += 0.1f;
+                    transform.position = new Vector3(transform.position.x + 0.1f, transform.position.y, 0f);
                 }
             }
             if (WallCheckRight.collider != null)
@@ -133,7 +133,7 @@ public class SimpleBoxObjectPhysics : MonoBehaviour
                 velocity.x = -Mathf.Abs(velocity.x);
                 if (WallCheckRight.collider.gameObject.tag == "Platform")
                 {
-                    velocity.x -= 0.1f;
+                    transform.position = new Vector3(transform.position.x - 0.1f, transform.position.y, 0f);
                 }
             }
             if (CeilingCheck.collider != null)

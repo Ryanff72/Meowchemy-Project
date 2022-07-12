@@ -47,6 +47,7 @@ public class PlayerController : MonoBehaviour
     public TextMeshProUGUI ammoText;
     public GameObject crushEffect;
     private GameObject InstantiatedWeapon;
+    public GameObject SoundCreator;
     [SerializeField] private GameObject WeaponPickup;
     
     
@@ -87,6 +88,7 @@ public class PlayerController : MonoBehaviour
     //private bool enemyInKillingPosition = false;
     public int ammoCount;
     float crushtime;
+    public AudioClip crushSound;
 
     void Start()
     {
@@ -678,6 +680,9 @@ public class PlayerController : MonoBehaviour
         rb2d.bodyType = RigidbodyType2D.Static;
         transform.GetChild(1).gameObject.SetActive(false);
         Instantiate(crushEffect, transform.position, Quaternion.identity);
+        GameObject SC = Instantiate(SoundCreator, transform);
+        SC.transform.position = transform.position;
+        SC.GetComponent<AudioProximity>().PlaySound(crushSound, 70f, 1f);
         GetComponent<BoxCollider2D>().enabled = false;
     }
   

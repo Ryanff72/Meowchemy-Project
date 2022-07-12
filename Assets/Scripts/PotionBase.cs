@@ -96,6 +96,7 @@ public class PotionBase : MonoBehaviour
         SC.GetComponent<AudioProximity>().PlaySound(PotionBreakSound, 70f, 0.6f);
         transform.GetChild(0).GetComponent<CircleCollider2D>().enabled = false;
         GetComponent<CircleCollider2D>().enabled = false;
+        transform.GetChild(2).gameObject.SetActive(false);
         HitObject = collision.gameObject;
         HitPos = transform.position;
         rb2d.bodyType = RigidbodyType2D.Static;
