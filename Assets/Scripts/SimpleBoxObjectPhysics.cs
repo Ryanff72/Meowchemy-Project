@@ -22,8 +22,10 @@ public class SimpleBoxObjectPhysics : MonoBehaviour
     bool velHasDiminished = false;
     [SerializeField] GameObject landingSmoke;
     [SerializeField] GameObject breakSmoke;
+    [SerializeField] GameObject SoundCreator;
     bool crushed;
     float crushtime;
+    public AudioClip landSound;
     // Start is called before the first frame update
     void Start()
     {
@@ -43,6 +45,9 @@ public class SimpleBoxObjectPhysics : MonoBehaviour
                 {
                     hasSpawnedSmoke = true;
                     Instantiate(landingSmoke, transform.position + new Vector3(0, -0.72f, 0), Quaternion.Euler(-90, 0, 0));
+                    GameObject SC = Instantiate(SoundCreator, transform.position, Quaternion.identity);
+                    SC.transform.position = transform.position;
+                    SC.GetComponent<AudioProximity>().PlaySound(landSound, 80f, 0.03f);
                 }
                 if (GroundCheck.collider.gameObject.tag == "Platform")
                 {

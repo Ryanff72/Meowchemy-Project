@@ -47,6 +47,9 @@ public class AIBase : MonoBehaviour
     public float aggroSpeed;
     private Rigidbody2D rb2d;
     [SerializeField] bool grounded;
+    bool ceilinged;
+    bool walledLeft;
+    bool walledRight;
     public bool hasSetAggro = false;
     public Vector2 JumpTimeRange;
     public Vector2 JumpHeightRange;
@@ -91,6 +94,7 @@ public class AIBase : MonoBehaviour
         jumpTimer = JumpTimeRange.y;
         shotTimer = ShotFireTimeRange.y;
         Player = GameObject.Find("Player");
+        DistrictAIManager = transform.parent.gameObject;
     }
     public void StateMachine()
     {
@@ -101,7 +105,7 @@ public class AIBase : MonoBehaviour
                 hasdied = false;
                 break;
             case AIState.boundedPatrol:
-                speed = 6f;
+                speed = 4f;
                 hasSetAggro = false;
                 hasdied = false;
                 Patrol();
@@ -154,19 +158,16 @@ public class AIBase : MonoBehaviour
 
     void Aggro()
     {
-        //check for wall
-        RaycastHit2D WallCheckLeft = Physics2D.Linecast(WCLL.transform.position, WCHL.transform.position, 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckLowRight = Physics2D.Linecast(WCLR.transform.position, WCLR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckHighRight = Physics2D.Linecast(WCHR.transform.position, WCHR.transform.position - new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        if (WallCheckLeft.collider != null)
+       
+        if (walledLeft)
         {
             velocity.x = speed;
         }
-        else if (WallCheckHighRight.collider != null || WallCheckLowRight.collider != null)
+        else if (walledRight)
         {
             velocity.x = -speed;
         }
-        if (Mathf.Abs(transform.position.x - Player.transform.position.x) > 40 && Mathf.Abs(transform.position.x - Player.transform.position.x) < 40 && shotTimer < 0.1f)
+        if (Mathf.Abs(transform.position.x - Player.transform.position.x) > 30 && Mathf.Abs(transform.position.x - Player.transform.position.x) < 30 && shotTimer < 0.1f)
         {
             if (transform.position.x > Player.transform.position.x)
             {
@@ -183,13 +184,25 @@ public class AIBase : MonoBehaviour
             
             DistrictAIManager.GetComponent<DistrictAIManagerScript>().aggroTimeLeft = DistrictAIManager.GetComponent<DistrictAIManagerScript>().aggroTime;
         }
-        if (shotTimer <= 0 && -1.5f < (transform.position.y-Player.transform.position.y) && (transform.position.y - Player.transform.position.y) < 1.5f )
+        if (shotTimer <= 0 && -2.2f < (transform.position.y-Player.transform.position.y) && (transform.position.y - Player.transform.position.y) < 2.2f )
         {
             shotTimer = Random.Range(ShotFireTimeRange.x, ShotFireTimeRange.y);
-            
+            if (Random.Range(0, 100) > 30)
+            {
+                if (transform.position.x > Player.transform.position.x)
+                {
+                    velocity.x = -speed;
+                }
+                else if (transform.position.x < Player.transform.position.x)
+                {
+                    velocity.x = speed;
+                }
+            }
             for (int i = 0; i < Projectile.GetComponent<ProjectileScript>().shotCount; i++)
             {
+                
                 Shoot();
+                
             } 
         }       
         else if (shotTimer <= 0)
@@ -274,7 +287,7 @@ public class AIBase : MonoBehaviour
             {
                 moveDir = "left";
             }
-                
+
         }
         else if (WallCheckLeft.collider != null)
         {
@@ -311,9 +324,9 @@ public class AIBase : MonoBehaviour
             {
                 velocity.x = speed;
             }
-            
+
         }
-        else if(canMove == true)
+        else if (canMove == true)
         {
             if (isPaused == "true" && canPause == true)
             {
@@ -327,7 +340,7 @@ public class AIBase : MonoBehaviour
         if (isPaused == "false" && canPause == true)
         {
             yield return new WaitForSeconds(4f);
-            if (Random.Range(0, 100) > 50f && isPaused == "false" )
+            if (Random.Range(0, 100) > 50f && isPaused == "false")
             {
                 isPaused = "true";
                 yield return new WaitForSeconds(Random.Range(2, 5));
@@ -340,9 +353,9 @@ public class AIBase : MonoBehaviour
             yield return new WaitForSeconds(Random.Range(2, 5));
             isPaused = "false";
         }
-        
-        
-        
+
+
+
     }
 
     // Update is called once per frame
@@ -352,15 +365,34 @@ public class AIBase : MonoBehaviour
         {
             StateMachine();
         }
-        
-
-
 
         //check for ground
-        RaycastHit2D CeilingCheck = Physics2D.Linecast(CCR.transform.position, CCL.transform.position, 1 << LayerMask.NameToLayer("Ground"));
-        if (CeilingCheck.collider != null)
+        //check for wall
+        if(Physics2D.Linecast(WCLL.transform.position, WCHL.transform.position, 1 << LayerMask.NameToLayer("Ground")))
         {
+            walledLeft = true;
+        }
+        else
+        {
+            walledLeft = false;
+        }
+        if (Physics2D.Linecast(WCHR.transform.position, WCLR.transform.position, 1 << LayerMask.NameToLayer("Ground")))
+        {
+            walledRight = true;
+        }
+        else
+        {
+            walledRight = false;
+        }
+
+        if (Physics2D.Linecast(CCR.transform.position, CCL.transform.position, 1 << LayerMask.NameToLayer("Ground")))
+        {
+            ceilinged = true;
             velocity = new Vector2(velocity.x, Mathf.Abs(velocity.y) * -0.4f);
+        }
+        else
+        {
+            ceilinged = false;
         }
         RaycastHit2D GroundCheck = Physics2D.Linecast(leftGc.transform.position, rightGc.transform.position, 1<<LayerMask.NameToLayer("Ground"));
         //RaycastHit2D GroundCheckRight = Physics2D.Linecast(rightGc.transform.position, rightGc.transform.position - new Vector3(0, -0.1f,0),1<<LayerMask.NameToLayer("Ground"));
@@ -411,7 +443,7 @@ public class AIBase : MonoBehaviour
             hasSpawnedLandingFX = false;
             grounded = false;
         }
-        if (CeilingCheck.collider != null && grounded == true)
+        if (ceilinged && grounded == true)
         {
             crushtime += Time.deltaTime;
             if (crushtime > 0.04f)
@@ -731,9 +763,6 @@ public class AIBase : MonoBehaviour
         WCHR.transform.localPosition = new Vector2(1.754f, 0.657f);
         GetComponent<BoxCollider2D>().size = new Vector2(3.47414f, 1.348f);
         RaycastHit2D NearGroundCheck = Physics2D.Linecast(leftGc.transform.position + new Vector3(0, -0.1f, 0), rightGc.transform.position + new Vector3(0, -0.1f, 0), 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckRight = Physics2D.Linecast(WCLR.transform.position, WCHR.transform.position, 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D WallCheckLeft = Physics2D.Linecast(WCLL.transform.position, WCHL.transform.position, 1 << LayerMask.NameToLayer("Ground"));
-        RaycastHit2D CeilingCheck = Physics2D.Linecast(CCR.transform.position, CCL.transform.position, 1 << LayerMask.NameToLayer("Ground"));
         if (velocity.y >= -4 && nearGrounded == false)
         {
             anim.SetBool("DeadUp", true);
@@ -772,15 +801,15 @@ public class AIBase : MonoBehaviour
             velocity.x *= 0.5f;
             velocity.y *= 0.6f;
         }
-        if (WallCheckLeft.collider != null)
+        if (walledLeft)
         {
             velocity.x = Mathf.Abs(velocity.x);
         }
-        if (WallCheckRight.collider != null)
+        if (walledRight)
         {
             velocity.x = -Mathf.Abs(velocity.x);
         }
-        if (CeilingCheck.collider != null)
+        if (ceilinged)
         {
             velocity.y = -Mathf.Abs(velocity.y);
         }
@@ -841,6 +870,13 @@ public class AIBase : MonoBehaviour
     {
         if (aiState != AIBase.AIState.dead)
         {
+            if (velocity.y < 3 && velocity.y < 0.5f && aiState != AIBase.AIState.aggro)
+            {
+                if (onPlatform == false)
+                {
+                    velocity.y = 6;
+                }
+            }
             if (HitPos.x > transform.position.x)
             {
                 moveDir = "right";
@@ -849,18 +885,7 @@ public class AIBase : MonoBehaviour
             {
                 moveDir = "left";
             }
-            if (velocity.y < 3 && velocity.y < 0.5f && aiState != AIBase.AIState.aggro)
-            {
-                if (onPlatform == false)
-                {
-                    velocity.y = 6;
-                }
-                else
-                {
-                    onPlatform = false;
-                    velocity.y = 6;
-                }
-            }
+            
             currentSuspicion += 31;
             StartCoroutine("Surprised");
             //enemiesInSound[i].gameObject.GetComponent<AIBase>().aiState = AIBase.AIState.suspicious;

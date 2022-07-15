@@ -16,6 +16,8 @@ public class CameraFollow : MonoBehaviour
 
     public float orthosize;
 
+    public float targetOrthosize;
+
     void Start()
     {
         Cam = GetComponent<Camera>();
@@ -24,9 +26,8 @@ public class CameraFollow : MonoBehaviour
 
     void FixedUpdate()
     {
-        //Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        //Vector3 desiredPosition = new Vector3((mouseWorldPosition.x + target.position.x * 4) / 5 , (mouseWorldPosition.y + target.position.y * 2) / 3, offset.z);
         Vector3 smoothedPosition = Vector3.SmoothDamp(transform.position, new Vector3(target.position.x, target.position.y, offset.z), ref velocity, smoothSpeed);
         transform.position = smoothedPosition;
+        Cam.orthographicSize = Mathf.Lerp(Cam.orthographicSize, targetOrthosize, Time.deltaTime * 2);
     }
 }

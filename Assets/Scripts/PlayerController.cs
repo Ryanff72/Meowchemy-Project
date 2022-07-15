@@ -44,6 +44,7 @@ public class PlayerController : MonoBehaviour
     public GameObject leftPartGun;
     public GameObject rightPartGun;
     public GameObject dogGun;
+    private GameObject mainCamera;
     public TextMeshProUGUI ammoText;
     public GameObject crushEffect;
     private GameObject InstantiatedWeapon;
@@ -89,9 +90,11 @@ public class PlayerController : MonoBehaviour
     public int ammoCount;
     float crushtime;
     public AudioClip crushSound;
+    public AudioClip landSound;
 
     void Start()
     {
+        mainCamera = GameObject.Find("Main Camera");
         anim = spriteParent.GetComponent<Animator>();
         rb2d = GetComponent<Rigidbody2D>();
         ps = PlayerState.neutral;
@@ -175,7 +178,10 @@ public class PlayerController : MonoBehaviour
             {
                 hasSpawnedLandingFX = true;
                 Instantiate(landingSmoke, transform.GetChild(0).transform.position + new Vector3(0,-0.6f,0), Quaternion.Euler(-90, 0, 0));
-                
+                GameObject SC = Instantiate(SoundCreator, transform.position, Quaternion.identity);
+                SC.transform.position = transform.position;
+                //SC.GetComponent<AudioProximity>().PlaySound(landSound, 70f, 1f);
+
             }
             if (GroundCheck.collider.gameObject.tag == "Platform")
             {
@@ -685,5 +691,24 @@ public class PlayerController : MonoBehaviour
         SC.GetComponent<AudioProximity>().PlaySound(crushSound, 70f, 1f);
         GetComponent<BoxCollider2D>().enabled = false;
     }
-  
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.tag == "CameraTriggerBox")
+        {
+            Debug.Log(mainCamera.GetComponent<CameraFollow>().target);
+            Debug.Log(collision.gameObject.GetComponent<CameraTrigger>().CamTransform);
+            mainCamera.GetComponent<CameraFollow>().target = collision.gameObject.GetComponent<CameraTrigger>().CamTransform;
+            mainCamera.GetComponent<CameraFollow>().targetOrthosize = collision.gameObject.GetComponent<CameraTrigger>().Orthosize;
+        }
+    }
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.tag == "CameraTriggerBox")
+        {
+            mainCamera.GetComponent<CameraFollow>().target = transform;
+            mainCamera.GetComponent<CameraFollow>().targetOrthosize = 17;
+        }
+    }
+
 }

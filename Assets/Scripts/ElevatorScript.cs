@@ -31,11 +31,11 @@ public class ElevatorScript : MonoBehaviour
             LR.SetPosition(0, transform.GetChild(1).transform.position);
             LR.SetPosition(1, transform.GetChild(0).transform.position);
             LR1.SetPosition(1, transform.GetChild(1).transform.position);
+            LR1.SetPosition(0, transform.GetChild(1).transform.position);
         }
 
         if (cuttableRope == true)
         {
-            LR1.SetPosition(0, transform.GetChild(1).transform.position);
             RaycastHit2D BreakCheckEnemyProjectile0 = Physics2D.Linecast(transform.position, transform.GetChild(1).transform.position, 1 << LayerMask.NameToLayer("EnemyProjectile"));
             RaycastHit2D BreakCheckEnemyProjectile1 = Physics2D.Linecast(transform.position + new Vector3(0.5f, 0, 0), transform.GetChild(1).transform.position + new Vector3(0.5f, 0, 0), 1 << LayerMask.NameToLayer("EnemyProjectile"));
             RaycastHit2D BreakCheckEnemyProjectile2 = Physics2D.Linecast(transform.position + new Vector3(-0.5f, 0, 0), transform.GetChild(1).transform.position + new Vector3(-0.5f, 0, 0), 1 << LayerMask.NameToLayer("EnemyProjectile"));
@@ -100,7 +100,7 @@ public class ElevatorScript : MonoBehaviour
             {
                 if (transform.GetChild(1).localPosition.y < highest.y)
                 {
-                    sbop.velocity.y = 8;
+                    sbop.velocity.y = upSpeed;
                 }
                 else
                 {
@@ -112,7 +112,7 @@ public class ElevatorScript : MonoBehaviour
             {
                 if (transform.GetChild(1).localPosition.y > lowest.y)
                 {
-                    sbop.velocity.y = -8;
+                    sbop.velocity.y = -upSpeed;
                 }
                 else
                 {
@@ -122,6 +122,7 @@ public class ElevatorScript : MonoBehaviour
         }
         else
         {
+            LR1.SetPosition(0, LR1.gameObject.transform.position);
             LR1.SetPosition(1, Vector3.Lerp(LR1.GetPosition(1), transform.GetChild(1).transform.position, Time.deltaTime * 15));
         }
         

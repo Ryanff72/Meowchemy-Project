@@ -127,11 +127,11 @@ public class FieldOfViewScript : MonoBehaviour
     {
         if (aimDirection == "right")
         {
-            startingAngle = Mathf.Lerp(startingAngle, 55, Time.deltaTime * 20);
+            startingAngle = 55;
         }
         else if (aimDirection == "left")
         {
-            startingAngle = Mathf.Lerp(startingAngle, 235, Time.deltaTime * 20);
+            startingAngle = 235;
         }
 
         //Vector3 dir = aimDirection;

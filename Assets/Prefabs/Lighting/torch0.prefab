@@ -124,8 +124,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isLooping: 1
-  mxVolm: 0.3
-  maxDist: 50
+  mxVolm: 0.1
+  maxDist: 180
   audiocp: {fileID: 8300000, guid: 8022ab02d8882d4489bba471b8dcdeab, type: 3}
 --- !u!82 &1742851897830988730
 AudioSource:

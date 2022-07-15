@@ -93,7 +93,7 @@ public class PotionBase : MonoBehaviour
     {
         GameObject SC = Instantiate(SoundCreator, transform);
         SC.transform.position = transform.position;
-        SC.GetComponent<AudioProximity>().PlaySound(PotionBreakSound, 70f, 0.6f);
+        SC.GetComponent<AudioProximity>().PlaySound(PotionBreakSound, 180f, 0.3f);
         transform.GetChild(0).GetComponent<CircleCollider2D>().enabled = false;
         GetComponent<CircleCollider2D>().enabled = false;
         transform.GetChild(2).gameObject.SetActive(false);

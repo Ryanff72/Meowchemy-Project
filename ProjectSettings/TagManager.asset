@@ -9,6 +9,7 @@ TagManager:
   - Object
   - Potion
   - Lever
+  - CameraTriggerBox
   layers:
   - Default
   - TransparentFX
