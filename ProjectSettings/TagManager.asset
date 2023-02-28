@@ -10,6 +10,7 @@ TagManager:
   - Potion
   - Lever
   - CameraTriggerBox
+  - PotionGiver
   layers:
   - Default
   - TransparentFX

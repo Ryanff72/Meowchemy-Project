@@ -131,10 +131,15 @@ public class PlayerController : MonoBehaviour
             if ((Input.GetAxis("Horizontal") == 0) || (canMoveLeft == false || canMoveRight == false))
             {
                 float xVelocity = 0;
-                velocity = new Vector2(Mathf.SmoothDamp(velocity.x, 0, ref xVelocity, decelSpeed), velocity.y);
+                
                 if (grounded)
                 {
+                    velocity = new Vector2(Mathf.SmoothDamp(velocity.x, 0, ref xVelocity, decelSpeed), velocity.y);
                     anim.SetBool("Run", false);
+                }
+                else
+                {
+                    velocity = new Vector2(Mathf.SmoothDamp(velocity.x, 0, ref xVelocity, decelSpeed*1.9f), velocity.y);
                 }
 
                 
@@ -696,10 +701,20 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.tag == "CameraTriggerBox")
         {
-            Debug.Log(mainCamera.GetComponent<CameraFollow>().target);
-            Debug.Log(collision.gameObject.GetComponent<CameraTrigger>().CamTransform);
             mainCamera.GetComponent<CameraFollow>().target = collision.gameObject.GetComponent<CameraTrigger>().CamTransform;
             mainCamera.GetComponent<CameraFollow>().targetOrthosize = collision.gameObject.GetComponent<CameraTrigger>().Orthosize;
+        }
+        if (collision.tag == "PotionGiver")
+        {
+            Debug.Log("hhh");
+            for (int i = 0; i < collision.gameObject.GetComponent<GivePotions>().potions.Length; i++)
+            {
+                Debug.Log("hhh");
+                transform.GetChild(1).transform.GetChild(0).transform.GetChild(2).transform.GetChild(0).GetComponent<PotionManager>().Potions[i] = collision.gameObject.GetComponent<GivePotions>().potions[i];
+                transform.GetChild(1).transform.GetChild(0).transform.GetChild(2).transform.GetChild(0).GetComponent<PotionManager>().numberPotionsRemaining[i] = collision.gameObject.GetComponent<GivePotions>().potioncount[i];
+                gameObject.transform.GetChild(1).transform.GetChild(0).transform.GetChild(2).transform.GetChild(0).GetComponent<PotionManager>().GotSomePotions();
+            }
+            Destroy(collision.gameObject);
         }
     }
     private void OnTriggerExit2D(Collider2D collision)

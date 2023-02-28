@@ -70,7 +70,31 @@ public class PotionManager : MonoBehaviour
         }
 
     }
+    public void GotSomePotions()
+    {
+        for (int i = 0; i < Potions.Length; i++)
+        {
+            hotBar.transform.GetChild(i).transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = numberPotionsRemaining[i].ToString();
+            hotBar.transform.GetChild(i).transform.GetChild(3).GetComponent<SpriteRenderer>().sprite = Potions[i].transform.GetChild(0).GetComponent<SpriteRenderer>().sprite;
 
+        }
+        for (int o = 0; o < hotBar.transform.childCount; o++)
+        {
+            if (o > Potions.Length - 1)
+            {
+                hotBar.transform.GetChild(o).gameObject.SetActive(false);
+            }
+        }
+        //decides if potions should be rendered in the player's hand
+        if (numberPotionsRemaining[equippedPotionIndex] > 0)
+        {
+            transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Potions[equippedPotionIndex].transform.GetChild(0).GetComponent<SpriteRenderer>().sprite;
+        }
+        else
+        {
+            transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
+        }
+    }
     // Update is called once per frame
     void Update()
     {
