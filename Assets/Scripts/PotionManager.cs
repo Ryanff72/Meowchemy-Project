@@ -21,6 +21,8 @@ public class PotionManager : MonoBehaviour
     float distanceToMouse;
     GameObject ThrownPotion;
     SoundManagerScript sms;
+    [SerializeField] GameObject SoundCreator;
+    [SerializeField] AudioClip GunSound;
 
     public GameObject player;
 [Header("Points")]
@@ -36,6 +38,8 @@ public class PotionManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        SoundCreator = Instantiate(SoundCreator, transform);
+        SoundCreator.GetComponent<AudioProximity>().canPlayMaxTime = 0.1f;
         sms = GameObject.Find("SoundManager").GetComponent<SoundManagerScript>();
         heldPotionSize = transform.GetChild(0).transform.localScale;
         points = new GameObject[numberOfPoints];
@@ -246,10 +250,11 @@ public class PotionManager : MonoBehaviour
         }
         else if (Input.GetButtonDown("Throw")) // fires off the weapon
         {
-            sms.MakeSound(10, transform.position);
+            SoundCreator.GetComponent<AudioProximity>().PlaySound(GunSound, 140f, 0.5f);
             for (int i = 0; i < Projectile.GetComponent<ProjectileScript>().shotCount; i++)
             {
                 GameObject NewProj;
+
                 if (player.transform.GetChild(1).GetChild(0).localScale.x > 0)
                 {
                     NewProj = Instantiate(Projectile, gunTip.transform.position, Quaternion.identity);

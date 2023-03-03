@@ -27,6 +27,7 @@ public class AIBase : MonoBehaviour
     [SerializeField] GameObject SoundCreator;
     [SerializeField] AudioClip CallFriendsSound;
     [SerializeField] AudioClip DieSound;
+    [SerializeField] AudioClip GunSound;
 
     [Header("PatrolSettings")]
     public float leftLimit;
@@ -102,6 +103,7 @@ public class AIBase : MonoBehaviour
         {
             case AIState.idle:
                 hasSetAggro = false;
+                SoundCreator.GetComponent<AudioProximity>().canPlayMaxTime = 5f;
                 hasdied = false;
                 break;
             case AIState.boundedPatrol:
@@ -118,6 +120,7 @@ public class AIBase : MonoBehaviour
                 break;
             case AIState.aggro:
                 speed = aggroSpeed;
+                SoundCreator.GetComponent<AudioProximity>().canPlayMaxTime = 0.1f;
                 setAggro();
                 hasdied = false;
                 hasSetAggro = true;
@@ -722,17 +725,18 @@ public class AIBase : MonoBehaviour
             hasdied = true;
             SoundCreator.transform.position = transform.position;
             SoundCreator.GetComponent<AudioProximity>().PlaySound(DieSound, 80f, 0.9f);
-            RaycastHit2D CheckRight = Physics2D.Linecast(transform.position, transform.position + new Vector3(0, 2f, 0), 1 << LayerMask.NameToLayer("Ground"));
-            RaycastHit2D CheckLeft = Physics2D.Linecast(transform.position, transform.position + new Vector3(0, -2f, 0), 1 << LayerMask.NameToLayer("Ground"));
+            RaycastHit2D CheckRight = Physics2D.Linecast(transform.position, transform.position + new Vector3(2.5f, 0, 0), 1 << LayerMask.NameToLayer("Ground"));
+            RaycastHit2D CheckLeft = Physics2D.Linecast(transform.position, transform.position + new Vector3(-2.5f, 0, 0), 1 << LayerMask.NameToLayer("Ground"));
             if (CheckLeft.collider != null)
-            {
-                transform.position = transform.position + new Vector3(-1.5f, 0, 0);
-            }
-            else if (CheckRight.collider != null)
             {
                 transform.position = transform.position + new Vector3(1.5f, 0, 0);
             }
+            else if (CheckRight.collider != null)
+            {
+                transform.position = transform.position + new Vector3(-1.5f, 0, 0);
+            }
         }
+        transform.GetChild(2).transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
         transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(9).gameObject.SetActive(false);
         transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(8).gameObject.SetActive(false);
         transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).transform.GetChild(3).gameObject.SetActive(false);
@@ -741,7 +745,7 @@ public class AIBase : MonoBehaviour
         if (hasDroppedGun == false)
         {
             hasDroppedGun = true;
-            GameObject DGP = Instantiate(DogGunPickup, transform.position, Quaternion.identity);
+            GameObject DGP = Instantiate(DogGunPickup, transform.position + new Vector3(0,2,0), Quaternion.identity);
             DGP.GetComponent<SimpleBoxObjectPhysics>().velocity = velocity * 0.7f;
         }
         if (anim.gameObject.transform.localScale.x > 0)
@@ -861,6 +865,7 @@ public class AIBase : MonoBehaviour
             hasSquished = true;
 
         }
+
         squishLandHelper.transform.localScale = Vector3.Lerp(squishLandHelper.transform.localScale, new Vector3(1, 1f, 1), Time.deltaTime * 45f);
 
     }
@@ -901,6 +906,7 @@ public class AIBase : MonoBehaviour
 
     private void Shoot()
     {
+        SoundCreator.GetComponent<AudioProximity>().PlaySound(GunSound, 150f, 0.3f);
         GameObject NewProj;
         if (moveDir == "right")
         {
@@ -916,12 +922,14 @@ public class AIBase : MonoBehaviour
             GameObject newFX = Instantiate(GunFX, gunTip.transform.position, Quaternion.Euler(-90, 180, 0));
             newFX.transform.parent = transform;
         }
+        
     }
 
     public void Crushed()
     {
         if(crushed == false)
         {
+            SoundCreator.GetComponent<AudioProximity>().PlaySound(DieSound, 80f, 0.9f);
             crushed = true;
             GetComponent<BoxCollider2D>().enabled = false;
             aiState = AIState.dead;

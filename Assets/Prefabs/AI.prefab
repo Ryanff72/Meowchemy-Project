@@ -863,6 +863,7 @@ MonoBehaviour:
   SoundCreator: {fileID: 3607655030373278906, guid: b3ae48bc208f308409fb3309c4557e46, type: 3}
   CallFriendsSound: {fileID: 8300000, guid: 37f69f3625ca9f14f9d121a1c0aad452, type: 3}
   DieSound: {fileID: 8300000, guid: 219948d01f1f64f4dad397b21261b4a9, type: 3}
+  GunSound: {fileID: 8300000, guid: 6c7cd7f21fb0f9f41a577d821091a5a0, type: 3}
   leftLimit: -12.5
   rightLimit: 0
   breakTime: 4

@@ -7,7 +7,7 @@ public class AudioProximity : MonoBehaviour
     AudioSource audiosrc;
     [SerializeField] bool isLooping;
     Transform Player;
-    float canPlayMaxTime = 5;
+    public float canPlayMaxTime = 5f;
     float canPlayCurrentTime = 0;
     [SerializeField] float mxVolm;
     [SerializeField] float maxDist = 1;

@@ -241,7 +241,7 @@ public class PlayerController : MonoBehaviour
             RaycastHit2D CheckLeft = Physics2D.Linecast(transform.position, transform.position + new Vector3(-1,0, 0), 1 << LayerMask.NameToLayer("Ground"));
             if (CheckLeft.collider != null)
             {
-                InstantiatedWeapon = Instantiate(WeaponPickup, transform.position + new Vector3(0, 1, 0), Quaternion.identity);
+                InstantiatedWeapon = Instantiate(WeaponPickup, transform.position + new Vector3(1, 1, 0), Quaternion.identity);
             }
             else if (CheckRight.collider != null)
             {
@@ -296,7 +296,7 @@ public class PlayerController : MonoBehaviour
         //check for wall in various directions
         RaycastHit2D WallCheckRight = Physics2D.Linecast(wcbr.transform.position, wctr.transform.position - new Vector3(0, 0, 0),1 << LayerMask.NameToLayer("Ground"));
         RaycastHit2D WallCheckLeft = Physics2D.Linecast(wcbl.transform.position, wctl.transform.position - new Vector3(0, 0,0),1<<LayerMask.NameToLayer("Ground"));
-        RaycastHit2D CeilingCheck = Physics2D.Linecast(ccr.transform.position, ccl.transform.position - new Vector3(0, 0.1f, 0),1 << LayerMask.NameToLayer("Ground"));
+        RaycastHit2D CeilingCheck = Physics2D.Linecast(ccr.transform.position, ccl.transform.position - new Vector3(0f, 0, 0),1 << LayerMask.NameToLayer("Ground"));
         if (WallCheckRight == true)
         {
             canMoveRight = false;
@@ -499,13 +499,6 @@ public class PlayerController : MonoBehaviour
             anim.gameObject.transform.localScale = new Vector3(1, -1, 0.5f);
         }
         canPickUpWeapon = false;
-        if (hasWeapon)
-        {
-            dogGun.gameObject.SetActive(false);
-            hasWeapon = false;
-            GameObject droppedWeapon = Instantiate(WeaponPickup, transform.position+new Vector3(0,1,0), Quaternion.identity);
-            droppedWeapon.transform.GetComponent<SimpleBoxObjectPhysics>().velocity = velocity * 0.7f;
-        }
         transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).gameObject.GetComponent<SpriteRenderer>().enabled = false;
         GetComponent<BoxCollider2D>().size = new Vector2(1.5f, 1);
         transform.GetChild(1).GetChild(0).transform.localPosition = new Vector3(-0.0109999999f, 1.08899999f, 0);
@@ -584,6 +577,25 @@ public class PlayerController : MonoBehaviour
             velocity.y += gravity * Time.deltaTime;
         }
         rb2d.velocity = velocity;
+        if (hasWeapon)
+        {
+            dogGun.gameObject.SetActive(false);
+            hasWeapon = false;
+            GameObject droppedWeapon;
+            if (!canMoveLeft)
+            {
+                droppedWeapon = Instantiate(WeaponPickup, transform.position + new Vector3(1, 1, 0), Quaternion.identity);
+            }
+            else if (!canMoveRight)
+            {
+                droppedWeapon = Instantiate(WeaponPickup, transform.position + new Vector3(-1, 1, 0), Quaternion.identity);
+            }
+            else
+            {
+                droppedWeapon = Instantiate(WeaponPickup, transform.position + new Vector3(0, 1, 0), Quaternion.identity);
+            }
+            droppedWeapon.transform.GetComponent<SimpleBoxObjectPhysics>().velocity = velocity * 0.7f;
+        }
     }
     void JumpAble()
     {
